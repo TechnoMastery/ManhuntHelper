@@ -1,5 +1,6 @@
 package net.minheur.manhunt_helper;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.EntityArgumentType;
@@ -67,21 +68,37 @@ public class ManhuntHelper implements ModInitializer {
                                             )
                                     )
                             )
-                            .then(literal("claim")
+                            .then(literal("host")
                                     .requires(source -> {
                                         if (source.getEntity() instanceof ServerPlayerEntity player)
                                             return AllowedHostManager.isHost(player.getUuid());
                                         return false;
                                     })
-                                    .executes(context -> {
-                                        ServerPlayerEntity host = context.getSource().getPlayerOrThrow();
-                                        if (GameDataManager.phase != GameDataManager.Phase.WAITING) {
-                                            context.getSource().sendError(Text.literal("Game has already been claimed."));
-                                            return 0;
-                                        }
-                                        GameManager.setup(host);
-                                        return 1;
-                                    })
+                                    .then(literal("claim")
+                                            .executes(context -> {
+                                                if (GameDataManager.phase != GameDataManager.Phase.WAITING) {
+                                                    context.getSource().sendError(Text.literal("Game has already been claimed."));
+                                                    return 0;
+                                                }
+                                                ServerPlayerEntity host = context.getSource().getPlayerOrThrow();
+                                                GameManager.setup(host);
+                                                return 1;
+                                            })
+                                    )
+                                    .then(literal("config")
+                                            .then(literal("allowChooseTeam")
+                                                    .then(argument("allows", BoolArgumentType.bool())
+                                                            .executes(context -> {
+                                                                if (GameDataManager.phase != GameDataManager.Phase.CONFIG) {
+                                                                    context.getSource().sendError(Text.literal("Not in config stage."));
+                                                                    return 0;
+                                                                }
+                                                                GameDataManager.allowChooseTeam = BoolArgumentType.getBool(context, "allows");
+                                                                return 1;
+                                                            })
+                                                    )
+                                            )
+                                    )
                             )
             );
         }));
