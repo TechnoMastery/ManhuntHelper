@@ -1,11 +1,12 @@
 package net.minheur.manhunt_helper;
 
 import com.alphaduck.manhunt.ManHunt;
+import com.alphaduck.manhunt.Runners;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.MarkerEntity;
 import net.minecraft.entity.SpawnReason;
-import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.Team;
@@ -22,9 +23,8 @@ import net.minecraft.world.border.WorldBorder;
 import net.minecraft.world.rule.GameRules;
 import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
 
-import java.util.List;
-
 public class GameManager {
+
     public static void setup(ServerPlayerEntity host) {
         MinecraftServer server = host.getEntityWorld().getServer();
         ServerWorld world = host.getEntityWorld();
@@ -198,4 +198,45 @@ public class GameManager {
         );
 
     }
+
+    public static void prepare(ServerPlayerEntity host) {
+        MinecraftServer server = host.getEntityWorld().getServer();
+        Scoreboard scoreboard = server.getScoreboard();
+        ServerWorld world = host.getEntityWorld();
+
+        BlockPos spawnPos = world.getEntitiesByType(
+                EntityType.MARKER, marker -> marker.getCommandTags().contains("spawn")
+        ).getFirst().getBlockPos().up();
+
+        for (ServerPlayerEntity other : server.getPlayerManager().getPlayerList()) {
+
+            if (scoreboard.getScoreHolderTeam(other.getName().getString()).equals("runner")) {
+                other.getCommandTags().add("player");
+                Runners.addRunner(other.getUuidAsString());
+                GameDataManager.runnerLeft ++;
+            }
+            if (scoreboard.getScoreHolderTeam(other.getName().getString()).equals("hunter"))
+                other.getCommandTags().add("player");
+            if (other.getCommandTags().contains("player"))
+                other.getCommandTags().add("stuck");
+
+            other.changeGameMode(GameMode.SPECTATOR);
+            other.setSpawnPoint(new ServerPlayerEntity.Respawn(
+                    new WorldProperties.SpawnPoint(new GlobalPos(world.getRegistryKey(), spawnPos), 0f, 0f), true), false
+            );
+        }
+
+        WorldBorder border = world.getWorldBorder();
+        border.setSize(59999968.0);
+
+        GameRules rules = world.getGameRules();
+        rules.setValue(GameRules.SPAWN_MONSTERS, true, server);
+        rules.setValue(GameRules.DO_MOB_SPAWNING, true, server);
+
+        GameDataManager.phase = GameDataManager.Phase.PREPARE;
+        GameDataManager.save();
+
+        server.getPlayerManager().broadcast(Text.literal("Preparing to start...").formatted(Formatting.DARK_PURPLE), false);
+    }
+
 }
