@@ -75,6 +75,10 @@ public class ManhuntHelper implements ModInitializer {
                                     })
                                     .executes(context -> {
                                         ServerPlayerEntity host = context.getSource().getPlayerOrThrow();
+                                        if (GameDataManager.phase != GameDataManager.Phase.WAITING) {
+                                            context.getSource().sendError(Text.literal("Game has already been claimed."));
+                                            return 0;
+                                        }
                                         GameManager.setup(host);
                                         return 1;
                                     })
