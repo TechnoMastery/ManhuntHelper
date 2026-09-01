@@ -12,6 +12,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
+import net.minecraft.world.rule.GameRules;
 
 import java.nio.file.Path;
 
@@ -32,6 +33,12 @@ public class ManhuntHelper implements ModInitializer {
 
             worldPath = server.getSavePath(WorldSavePath.ROOT);
             GameDataManager.setup();
+
+            if (GameDataManager.phase == GameDataManager.Phase.WAITING) {
+                GameRules rules = world.getGameRules();
+                rules.setValue(GameRules.DO_MOB_SPAWNING, false, server);
+                rules.setValue(GameRules.SPAWN_MONSTERS, false, server);
+            }
         }));
 
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {

@@ -74,8 +74,6 @@ public class GameManager {
         rules.setValue(GameRules.ADVANCE_WEATHER, false, server);
         rules.setValue(GameRules.PVP, false, server);
         rules.setValue(GameRules.DO_IMMEDIATE_RESPAWN, true, server);
-        rules.setValue(GameRules.DO_MOB_SPAWNING, false, server);
-        rules.setValue(GameRules.SPAWN_MONSTERS, false, server);
 
         /*
          * TIME & WEATHER
