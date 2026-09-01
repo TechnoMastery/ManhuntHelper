@@ -1,16 +1,23 @@
 package net.minheur.manhunt_helper;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+
+import java.nio.file.Path;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class ManhuntHelper implements ModInitializer {
+
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     @Override
     public void onInitialize() {
@@ -103,5 +110,9 @@ public class ManhuntHelper implements ModInitializer {
             );
         }));
 
+    }
+
+    public static Path getConfigDir() {
+        return FabricLoader.getInstance().getConfigDir().resolve("manhunt-helper");
     }
 }

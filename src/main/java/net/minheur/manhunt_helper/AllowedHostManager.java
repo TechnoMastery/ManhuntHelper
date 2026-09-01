@@ -1,9 +1,5 @@
 package net.minheur.manhunt_helper;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import net.fabricmc.loader.api.FabricLoader;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -13,15 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class AllowedHostManager {
-    private static final Gson GSON = new GsonBuilder()
-            .setPrettyPrinting()
-            .create();
+import static net.minheur.manhunt_helper.ManhuntHelper.GSON;
+import static net.minheur.manhunt_helper.ManhuntHelper.getConfigDir;
 
-    private static final Path FILE = FabricLoader.getInstance()
-            .getConfigDir()
-            .resolve("manhunt-helper")
-            .resolve("hosts.json");
+public class AllowedHostManager {
+
+    private static final Path FILE = getConfigDir().resolve("hosts.json");
 
     private static HostData data;
 
