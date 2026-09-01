@@ -5,10 +5,13 @@ import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.WorldSavePath;
+import net.minecraft.world.World;
 
 import java.nio.file.Path;
 
@@ -18,10 +21,18 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class ManhuntHelper implements ModInitializer {
 
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    public static Path worldPath;
 
     @Override
     public void onInitialize() {
         AllowedHostManager.load();
+
+        ServerWorldEvents.LOAD.register(((server, world) -> {
+            if (world.getRegistryKey() != World.OVERWORLD) return;
+
+            worldPath = server.getSavePath(WorldSavePath.ROOT);
+            GameDataManager.setup();
+        }));
 
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
             dispatcher.register(

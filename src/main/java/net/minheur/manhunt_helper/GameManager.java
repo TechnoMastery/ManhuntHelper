@@ -175,6 +175,7 @@ public class GameManager {
          * ANNOUNCE
          */
 
+        GameDataManager.save();
         server.getPlayerManager().broadcast(Text.empty()
                         .append(Text.literal("Game hosted by ").formatted(Formatting.GREEN))
                         .append(Text.literal(host.getName().getString()).formatted(Formatting.GOLD, Formatting.BOLD))
