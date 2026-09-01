@@ -1,7 +1,11 @@
 package net.minheur.manhunt_helper;
 
+import com.alphaduck.manhunt.ManHunt;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.Team;
@@ -16,6 +20,7 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.WorldProperties;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraft.world.rule.GameRules;
+import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
 
 import java.util.List;
 
@@ -120,14 +125,14 @@ public class GameManager {
         runner = scoreboard.addTeam("runner");
         hunter = scoreboard.addTeam("hunter");
 
-        runner.setColor(net.minecraft.util.Formatting.GREEN);
-        hunter.setColor(net.minecraft.util.Formatting.BLUE);
+        runner.setColor(Formatting.GREEN);
+        hunter.setColor(Formatting.BLUE);
 
         runner.setCollisionRule(Team.CollisionRule.NEVER);
         hunter.setCollisionRule(Team.CollisionRule.NEVER);
 
-        runner.setPrefix(net.minecraft.text.Text.literal("[RUNNER] "));
-        hunter.setPrefix(net.minecraft.text.Text.literal("[HUNTER] "));
+        runner.setPrefix(Text.literal("[RUNNER] "));
+        hunter.setPrefix(Text.literal("[HUNTER] "));
 
         /*
          * DEATH detection
@@ -172,6 +177,17 @@ public class GameManager {
         /*
          * ANNOUNCE
          */
+
+        ManhuntModAccessor manhunt = ((ManhuntModAccessor) FabricLoader.getInstance()
+                .getModContainer("manhunt")
+                .flatMap(mod -> FabricLoader.getInstance()
+                        .getEntrypointContainers("main", ModInitializer.class)
+                        .stream()
+                        .filter(e -> e.getProvider() == mod)
+                        .map(e -> (ManHunt) e.getEntrypoint())
+                        .findFirst())
+                .orElseThrow());
+        manhunt.accessSetMod(host.getCommandSource(), false);
 
         GameDataManager.save();
         server.getPlayerManager().broadcast(Text.empty()

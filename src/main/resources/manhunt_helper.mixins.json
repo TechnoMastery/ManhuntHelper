@@ -4,6 +4,7 @@
   "package": "net.minheur.manhunt_helper.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ManhuntModAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
