@@ -196,7 +196,7 @@ public class ManhuntHelper implements ModInitializer {
             context.getSource().sendError(Text.literal("Need to be in config state to choose your team."));
             return false;
         }
-        if (!GameDataManager.allowChooseTeam) {
+        if (!GameDataManager.allowChooseTeam && !context.getSource().getPlayer().getCommandTags().contains("host")) {
             context.getSource().sendError(Text.literal("This game's host disabled team choice."));
             return false;
         }
