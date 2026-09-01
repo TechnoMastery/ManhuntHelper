@@ -179,6 +179,63 @@ public class ManhuntHelper implements ModInitializer {
                                                     )
                                             )
                                     )
+                                    .then(literal("team")
+                                            .then(argument("player", EntityArgumentType.player())
+                                                    .then(literal("runner").executes(context -> {
+                                                        if (!isConfigStage(context)) return 0;
+                                                        ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                        Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
+                                                        scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("runner"));
+                                                        context.getSource().sendFeedback(() -> Text.empty()
+                                                                .append(Text.literal("Player ").formatted(Formatting.DARK_GREEN))
+                                                                .append(Text.literal(player.getName().getString()).formatted(Formatting.GOLD, Formatting.UNDERLINE))
+                                                                .append(Text.literal(" has been added to the ").formatted(Formatting.DARK_GREEN))
+                                                                .append(Text.literal("runner").formatted(Formatting.GREEN, Formatting.BOLD))
+                                                                .append(Text.literal(" team !").formatted(Formatting.DARK_GREEN)), true);
+                                                        player.getCommandSource().sendFeedback(() -> Text.empty()
+                                                                .append(Text.literal("The host added you to the ").formatted(Formatting.DARK_GREEN))
+                                                                .append(Text.literal("runner").formatted(Formatting.GREEN, Formatting.BOLD))
+                                                                .append(Text.literal(" team !").formatted(Formatting.DARK_GREEN)), false);
+                                                        return 1;
+                                                    }))
+                                                    .then(literal("hunter").executes(context -> {
+                                                        if (!isConfigStage(context)) return 0;
+                                                        ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                        Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
+                                                        scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("hunter"));
+                                                        context.getSource().sendFeedback(() -> Text.empty()
+                                                                .append(Text.literal("Player ").formatted(Formatting.DARK_GREEN))
+                                                                .append(Text.literal(player.getName().getString()).formatted(Formatting.GOLD, Formatting.UNDERLINE))
+                                                                .append(Text.literal(" has been added to the ").formatted(Formatting.DARK_GREEN))
+                                                                .append(Text.literal("hunter").formatted(Formatting.GREEN, Formatting.BOLD))
+                                                                .append(Text.literal(" team !").formatted(Formatting.DARK_GREEN)), true);
+                                                        player.getCommandSource().sendFeedback(() -> Text.empty()
+                                                                .append(Text.literal("The host added you to the ").formatted(Formatting.DARK_GREEN))
+                                                                .append(Text.literal("hunter").formatted(Formatting.GREEN, Formatting.BOLD))
+                                                                .append(Text.literal(" team !").formatted(Formatting.DARK_GREEN)), false);
+                                                        return 1;
+                                                    }))
+                                                    .then(literal("spectator").executes(context -> {
+                                                        if (!isConfigStage(context)) return 0;
+                                                        ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                                                        Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
+                                                        Team team = scoreboard.getScoreHolderTeam(player.getName().getString());
+                                                        if (team != null)
+                                                            scoreboard.removeScoreHolderFromTeam(player.getName().getString(), team);
+                                                        context.getSource().sendFeedback(() -> Text.empty()
+                                                                .append(Text.literal("Player ").formatted(Formatting.DARK_GREEN))
+                                                                .append(Text.literal(player.getName().getString()).formatted(Formatting.GOLD, Formatting.UNDERLINE))
+                                                                .append(Text.literal(" has been set to a ").formatted(Formatting.DARK_GREEN))
+                                                                .append(Text.literal("spectator").formatted(Formatting.GREEN, Formatting.BOLD))
+                                                                .append(Text.literal(" !").formatted(Formatting.DARK_GREEN)), true);
+                                                        player.getCommandSource().sendFeedback(() -> Text.empty()
+                                                                .append(Text.literal("The host said you'd be a ").formatted(Formatting.DARK_GREEN))
+                                                                .append(Text.literal("spectator").formatted(Formatting.GREEN, Formatting.BOLD))
+                                                                .append(Text.literal(" !").formatted(Formatting.DARK_GREEN)), false);
+                                                        return 1;
+                                                    }))
+                                            )
+                                    )
                             )
             );
         }));
