@@ -9,6 +9,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.GameMode;
@@ -169,6 +170,17 @@ public class GameManager {
         for (int cx = chunkX -1; cx <= chunkX; cx ++)
             for (int cz = chunkZ -1; cz <= chunkZ; cz ++)
                 world.setChunkForced(cx, cz, true);
+
+        /*
+         * ANNOUNCE
+         */
+
+        server.getPlayerManager().broadcast(Text.empty()
+                        .append(Text.literal("Game hosted by ").formatted(Formatting.GREEN))
+                        .append(Text.literal(host.getName().getString()).formatted(Formatting.GOLD, Formatting.BOLD))
+                        .append(Text.literal(" !").formatted(Formatting.GREEN)),
+                false
+        );
 
     }
 }
