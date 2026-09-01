@@ -11,12 +11,12 @@ base {
 }
 
 loom {
-    splitEnvironmentSourceSets()
+    // splitEnvironmentSourceSets()
 
     mods {
         "manhunt_helper" {
             sourceSet sourceSets.main
-            sourceSet sourceSets.client
+            // sourceSet sourceSets.client
         }
     }
 }
@@ -37,6 +37,8 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    modImplementation files("libs/manhunt.jar")
 }
 
 processResources {
