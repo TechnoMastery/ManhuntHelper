@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "manhunt_helper",
+  "version": "${version}",
+  "name": "ManhuntHelper",
+  "description": "Helper for Manhunt Compass",
+  "authors": ["Min_heur2000"],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/manhunt_helper/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "net.minheur.manhunt_helper.ManhuntHelper"
+    ]
+  },
+  "mixins": [
+    "manhunt_helper.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

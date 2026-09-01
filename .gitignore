@@ -1,0 +1,59 @@
+# gralde
+.gradle/
+build/
+
+# gradle generated
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# eclipse
+.classpath
+.project
+.settings/
+
+# vscode
+.vscode/
+
+# netbeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/.nb-gradle/
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# java
+*.class
+
+# frabrc / mc generated files
+run/
+logs/
+
+# temp files
+*.tmp
+*.temp
+*.log
+
+# env / loc config
+.env
+.env.*
+
+# crash reports
+crash_reports/
+
+# mc runtime generated
+saves/
+config/
+
+# compiled / packaged artifacts
+*.jar
+*.war
+*.zip
