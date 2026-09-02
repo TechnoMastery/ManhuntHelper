@@ -10,13 +10,21 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin({ManHunt.class})
 public interface ManhuntModAccessor {
     @Invoker("setMode")
-    int accessSetMod(ServerCommandSource source, boolean locator);
+    static int accessSetMod(ServerCommandSource source, boolean locator) {
+        throw new AssertionError();
+    }
 
     @Invoker("createHunterCompass")
-    ItemStack mkCompass();
+    static ItemStack mkCompass() {
+        throw new AssertionError();
+    }
 
     @Accessor("resetRequestedAt")
-    void setResetReqAt(long value);
+    static void setResetReqAt(long value) {
+        throw new AssertionError();
+    }
     @Invoker("confirmReset")
-    int reset(ServerCommandSource source);
+    static int reset(ServerCommandSource source) {
+        throw new AssertionError();
+    }
 }

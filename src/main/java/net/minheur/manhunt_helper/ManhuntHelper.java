@@ -21,6 +21,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
 import net.minecraft.world.rule.GameRules;
+import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
 
 import java.nio.file.Path;
 
@@ -271,8 +272,8 @@ public class ManhuntHelper implements ModInitializer {
                                             context.getSource().sendError(Text.literal("You need to finish the game before deleting and resetting the server."));
                                             return 0;
                                         }
-                                        GameManager.manhuntMod.setResetReqAt(System.currentTimeMillis());
-                                        GameManager.manhuntMod.reset(context.getSource());
+                                        ManhuntModAccessor.setResetReqAt(System.currentTimeMillis());
+                                        ManhuntModAccessor.reset(context.getSource());
                                         return 0;
                                     }))
                                     .then(literal("cancel").executes(context -> {

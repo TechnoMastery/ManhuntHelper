@@ -35,8 +35,6 @@ import java.util.ArrayList;
 
 public class GameManager {
 
-    public static ManhuntModAccessor manhuntMod;
-
     private static BlockPos markerPos;
     public static void tick(MinecraftServer server) {
         if (markerPos == null)
@@ -208,7 +206,7 @@ public class GameManager {
             if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("hunter")) {
                 player.changeGameMode(GameMode.SURVIVAL);
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 100));
-                player.giveItemStack(manhuntMod.mkCompass());
+                player.giveItemStack(ManhuntModAccessor.mkCompass());
 
                 player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
                 player.networkHandler.sendPacket(new SubtitleS2CPacket(hunterSubtitle));
@@ -377,16 +375,7 @@ public class GameManager {
          * ANNOUNCE
          */
 
-        manhuntMod = ((ManhuntModAccessor) FabricLoader.getInstance()
-                .getModContainer("manhunt")
-                .flatMap(mod -> FabricLoader.getInstance()
-                        .getEntrypointContainers("main", ModInitializer.class)
-                        .stream()
-                        .filter(e -> e.getProvider() == mod)
-                        .map(e -> (ManHunt) e.getEntrypoint())
-                        .findFirst())
-                .orElseThrow());
-        manhuntMod.accessSetMod(host.getCommandSource(), false);
+        ManhuntModAccessor.accessSetMod(host.getCommandSource(), false);
 
         server.getPlayerManager().broadcast(Text.empty()
                         .append(Text.literal("Game hosted by ").formatted(Formatting.GREEN))
