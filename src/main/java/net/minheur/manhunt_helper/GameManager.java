@@ -6,6 +6,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.MarkerEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -29,6 +30,8 @@ import net.minecraft.world.WorldProperties;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraft.world.rule.GameRules;
 import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
+
+import java.util.ArrayList;
 
 public class GameManager {
 
@@ -97,6 +100,44 @@ public class GameManager {
             GameDataManager.timerTicks --;
         if (GameDataManager.timerTicks <= 0)
             freeHunters(server);
+    }
+
+    public static void cancel(ServerPlayerEntity host) {
+        ServerWorld world = host.getEntityWorld();
+        MinecraftServer server = world.getServer();
+        Scoreboard scoreboard = server.getScoreboard();
+
+        Runners.setRunners(new ArrayList<>());
+
+        scoreboard.removeTeam(new Team(scoreboard, "runner"));
+        scoreboard.removeTeam(new Team(scoreboard, "hunter"));
+
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            player.getInventory().clear();
+            player.requestTeleport(host.getX(), host.getY(), host.getZ());
+            player.getCommandTags().remove("stuck");
+            player.getCommandTags().remove("player");
+            player.changeGameMode(GameMode.ADVENTURE);
+        }
+        host.getCommandTags().remove("host");
+
+        world.getWorldBorder().setSize(10);
+        world.getGameRules().setValue(GameRules.SPAWN_MONSTERS, false, server);
+        world.getGameRules().setValue(GameRules.DO_MOB_SPAWNING, false, server);
+
+        server.getPlayerManager().broadcast(Text.empty()
+                .append(Text.literal(host.getName().getString()).formatted(Formatting.BOLD, Formatting.ITALIC, Formatting.DARK_GRAY))
+                .append(Text.literal(" has canceled his host!").formatted(Formatting.DARK_GRAY, Formatting.ITALIC)),
+                false
+        );
+
+        MarkerEntity marker = world.getEntitiesByType(EntityType.MARKER,
+                        m -> m.getCommandTags().contains("spawn"))
+                .stream()
+                .findFirst()
+                .orElse(null);
+        if (marker != null)
+            marker.kill(world);
     }
 
     private static void hunterWon(MinecraftServer server) {
