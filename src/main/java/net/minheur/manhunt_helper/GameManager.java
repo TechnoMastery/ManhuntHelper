@@ -86,12 +86,12 @@ public class GameManager {
             }
 
             if (player.getAdvancementTracker().getProgress(advancementDragon).isDone())
-                runnerWon();
+                runnerWon(server);
 
         }
 
         if (GameDataManager.phase == GameDataManager.Phase.PLAYING && GameDataManager.runnerLeft <= 0)
-            hunterWon();
+            hunterWon(server);
 
         if (GameDataManager.phase == GameDataManager.Phase.HEAD_START)
             GameDataManager.timerTicks --;
@@ -99,11 +99,48 @@ public class GameManager {
             freeHunters(server);
     }
 
-    private static void hunterWon() {
-        // TODO
+    private static void hunterWon(MinecraftServer server) {
+        globalFinish(server);
+
+        Text title = Text.empty()
+                .append(Text.literal("Huners WON").formatted(Formatting.GOLD));
+        Text subtitle = Text.empty()
+                .append(Text.literal("GGs").formatted(Formatting.GREEN, Formatting.GOLD));
+
+        server.getPlayerManager().broadcast(title, false);
+
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
+                player.networkHandler.sendPacket(new SubtitleS2CPacket(subtitle));
+                player.networkHandler.sendPacket(new TitleS2CPacket(title));
+        }
     }
-    private static void runnerWon() {
-        // TODO
+    private static void runnerWon(MinecraftServer server) {
+        globalFinish(server);
+
+        Text title = Text.empty()
+                .append(Text.literal("Runners WON").formatted(Formatting.GOLD));
+        Text subtitle = Text.empty()
+                .append(Text.literal("GGs").formatted(Formatting.GREEN, Formatting.BOLD));
+
+        server.getPlayerManager().broadcast(title, false);
+
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
+            player.networkHandler.sendPacket(new SubtitleS2CPacket(subtitle));
+            player.networkHandler.sendPacket(new TitleS2CPacket(title));
+        }
+    }
+    private static void globalFinish(MinecraftServer server) {
+        GameDataManager.phase = GameDataManager.Phase.FINISHED;
+        server.getOverworld().getGameRules().setValue(GameRules.PVP, false, server);
+
+        server.getOverworld().getWorldBorder().setSize(10);
+
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            player.requestTeleport(markerPos.getX(), markerPos.getY(), markerPos.getZ());
+            player.changeGameMode(GameMode.ADVENTURE);
+        }
     }
 
     private static void freeHunters(MinecraftServer server) {
