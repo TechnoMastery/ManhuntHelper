@@ -9,6 +9,9 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
+import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ScoreboardObjective;
@@ -26,8 +29,6 @@ import net.minecraft.world.WorldProperties;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraft.world.rule.GameRules;
 import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
-
-import java.util.Set;
 
 public class GameManager {
 
@@ -320,7 +321,50 @@ public class GameManager {
     }
 
     public static void run(ServerPlayerEntity host) {
-        // TODO
+        ServerWorld world = host.getEntityWorld();
+        MinecraftServer server = world.getServer();
+        Scoreboard scoreboard = server.getScoreboard();
+
+        Text runnerTitle = Text.empty()
+                .append(Text.literal("You're a ").formatted(Formatting.GREEN))
+                .append(Text.literal("Runner").formatted(Formatting.GREEN, Formatting.BOLD));
+        Text runnerSubtitle = Text.empty()
+                .append(Text.literal("Finish Minecraft and ").formatted(Formatting.YELLOW))
+                .append(Text.literal("survive !").formatted(Formatting.YELLOW, Formatting.BOLD));
+        Text hunterTitle = Text.empty()
+                .append(Text.literal("You're a ").formatted(Formatting.RED))
+                .append(Text.literal("Hunter").formatted(Formatting.RED, Formatting.BOLD));
+        Text hunterSubtitle = Text.empty()
+                .append(Text.literal("The runners are going...").formatted(Formatting.YELLOW));
+
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+
+            if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("runner")) {
+                player.getCommandTags().remove("stuck");
+                player.changeGameMode(GameMode.SURVIVAL);
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 100));
+
+                player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
+                player.networkHandler.sendPacket(new SubtitleS2CPacket(runnerSubtitle));
+                player.networkHandler.sendPacket(new TitleS2CPacket(runnerTitle));
+            }
+
+            if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("hunter")) {
+                player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
+                player.networkHandler.sendPacket(new SubtitleS2CPacket(hunterSubtitle));
+                player.networkHandler.sendPacket(new TitleS2CPacket(hunterTitle));
+            }
+
+        }
+
+        GameDataManager.phase = GameDataManager.Phase.HEAD_START;
+
+        GameRules rules = world.getGameRules();
+        rules.setValue(GameRules.ADVANCE_TIME, true, server);
+        rules.setValue(GameRules.ADVANCE_WEATHER, true, server);
+        rules.setValue(GameRules.PVP, true, server);
+        rules.setValue(GameRules.SPAWN_MONSTERS, true, server);
+        rules.setValue(GameRules.DO_MOB_SPAWNING, true, server);
     }
 
 }
