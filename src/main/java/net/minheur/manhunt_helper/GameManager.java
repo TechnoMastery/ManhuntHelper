@@ -57,8 +57,10 @@ public class GameManager {
             if (player.getCommandTags().contains("stuck") && markerPos != null)
                 player.requestTeleport(markerPos.getX(), markerPos.getY(), markerPos.getZ());
 
-            if (!(player.getCommandTags().contains("admin") || player.getCommandTags().contains("host") || player.getCommandTags().contains("player")))
-                player.changeGameMode(GameMode.SPECTATOR);
+            if (
+                    !(player.getCommandTags().contains("admin") || player.getCommandTags().contains("host"))
+                    && !(GameDataManager.phase == GameDataManager.Phase.WAITING || GameDataManager.phase == GameDataManager.Phase.FINISHED)
+            ) player.changeGameMode(GameMode.SPECTATOR);
 
             if (displayTimer) player.sendMessage(timerMessage, true);
 
