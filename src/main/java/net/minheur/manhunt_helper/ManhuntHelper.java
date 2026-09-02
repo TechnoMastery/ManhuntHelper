@@ -242,15 +242,17 @@ public class ManhuntHelper implements ModInitializer {
                                             )
                                     )
                                     .then(literal("prepare").executes(context -> {
-                                        if (GameDataManager.phase != GameDataManager.Phase.CONFIG) {
-                                            context.getSource().sendError(Text.literal("Game can't be prepared."));
-                                            return 0;
-                                        }
+                                        if (!isConfigStage(context)) return 0;
                                         ServerPlayerEntity host = context.getSource().getPlayerOrThrow();
                                         GameManager.prepare(host);
                                         return 1;
                                     }))
                                     .then(literal("start").executes(context -> {
+                                        assert context.getSource().getEntity() != null;
+                                        if (!context.getSource().getEntity().getCommandTags().contains("host")) {
+                                            context.getSource().sendError(Text.literal("You are not this game's host!"));
+                                            return 0;
+                                        }
                                         if (GameDataManager.phase != GameDataManager.Phase.PREPARE) {
                                             context.getSource().sendError(Text.literal("Game is not prepared."));
                                             return 0;
