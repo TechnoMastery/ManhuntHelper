@@ -4,17 +4,21 @@ import com.alphaduck.manhunt.ManHunt;
 import com.alphaduck.manhunt.Runners;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.MarkerEntity;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardCriterion;
+import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.GameMode;
@@ -23,7 +27,85 @@ import net.minecraft.world.border.WorldBorder;
 import net.minecraft.world.rule.GameRules;
 import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
 
+import java.util.Set;
+
 public class GameManager {
+
+    private static BlockPos markerPos;
+    public static void tick(MinecraftServer server) {
+        if (markerPos == null)
+            markerPos = server.getOverworld()
+                    .getEntitiesByType(EntityType.MARKER,
+                            marker -> marker.getCommandTags().contains("spawn"))
+                    .stream()
+                    .map(marker -> marker.getBlockPos().up())
+                    .findFirst()
+                    .orElse(null);
+
+        boolean giveEffects = GameDataManager.phase == GameDataManager.Phase.WAITING || GameDataManager.phase == GameDataManager.Phase.FINISHED;
+        Scoreboard scoreboard = server.getScoreboard();
+        ScoreboardObjective deaths = scoreboard.getNullableObjective("deaths");
+        AdvancementEntry advancementDragon = server.getAdvancementLoader().get(Identifier.of("minecraft", "end/kill_dragon"));
+
+        boolean displayTimer = GameDataManager.phase == GameDataManager.Phase.HEAD_START;
+        Text timerMessage = Text.empty()
+                .append(Text.literal("Hunters are freed it ").formatted(Formatting.DARK_RED))
+                .append(Text.literal(String.valueOf(GameDataManager.timerTicks / 20)).formatted(Formatting.DARK_RED, Formatting.BOLD))
+                .append(Text.literal(" seconds !").formatted(Formatting.DARK_RED));
+
+        // player tick
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+
+            if (player.getCommandTags().contains("stuck") && markerPos != null)
+                player.requestTeleport(markerPos.getX(), markerPos.getY(), markerPos.getZ());
+
+            if (!(player.getCommandTags().contains("admin") || player.getCommandTags().contains("host") || player.getCommandTags().contains("player")))
+                player.changeGameMode(GameMode.SPECTATOR);
+
+            if (displayTimer) player.sendMessage(timerMessage, true);
+
+            if (giveEffects) {
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 40, 25));
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, 40, 255));
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 255));
+            }
+
+            if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("runner") && (deaths != null && scoreboard.getScore(player, deaths).getScore() >= 1)) {
+                server.getPlayerManager().broadcast(Text.empty()
+                        .append(Text.literal("The runner ").formatted(Formatting.GOLD))
+                        .append(Text.literal(player.getName().getString()).formatted(Formatting.GOLD, Formatting.BOLD))
+                        .append(Text.literal(" is dead !").formatted(Formatting.GOLD)),
+                        false
+                );
+                GameDataManager.runnerLeft --;
+                scoreboard.getOrCreateScore(player, deaths).setScore(-1);
+                player.changeGameMode(GameMode.SPECTATOR);
+            }
+
+            if (player.getAdvancementTracker().getProgress(advancementDragon).isDone())
+                runnerWon();
+
+        }
+
+        if (GameDataManager.phase == GameDataManager.Phase.PLAYING && GameDataManager.runnerLeft <= 0)
+            hunterWon();
+
+        if (GameDataManager.phase == GameDataManager.Phase.HEAD_START)
+            GameDataManager.timerTicks --;
+        if (GameDataManager.timerTicks <= 0)
+            freeHunters();
+    }
+
+    private static void hunterWon() {
+        // TODO
+    }
+    private static void runnerWon() {
+        // TODO
+    }
+
+    private static void freeHunters() {
+        // TODO
+    }
 
     public static void setup(ServerPlayerEntity host) {
         MinecraftServer server = host.getEntityWorld().getServer();
@@ -189,7 +271,6 @@ public class GameManager {
                 .orElseThrow());
         manhunt.accessSetMod(host.getCommandSource(), false);
 
-        GameDataManager.save();
         server.getPlayerManager().broadcast(Text.empty()
                         .append(Text.literal("Game hosted by ").formatted(Formatting.GREEN))
                         .append(Text.literal(host.getName().getString()).formatted(Formatting.GOLD, Formatting.BOLD))
@@ -234,7 +315,6 @@ public class GameManager {
         rules.setValue(GameRules.DO_MOB_SPAWNING, true, server);
 
         GameDataManager.phase = GameDataManager.Phase.PREPARE;
-        GameDataManager.save();
 
         server.getPlayerManager().broadcast(Text.literal("Preparing to start...").formatted(Formatting.DARK_PURPLE), false);
     }

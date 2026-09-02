@@ -7,6 +7,8 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
@@ -46,6 +48,9 @@ public class ManhuntHelper implements ModInitializer {
                 rules.setValue(GameRules.SPAWN_MONSTERS, false, server);
             }
         }));
+
+        ServerTickEvents.END_SERVER_TICK.register(GameManager::tick);
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> GameDataManager.save());
 
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
             dispatcher.register(
