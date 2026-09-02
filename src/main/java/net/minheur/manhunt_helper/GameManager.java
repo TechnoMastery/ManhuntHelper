@@ -32,6 +32,8 @@ import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
 
 public class GameManager {
 
+    private static ManhuntModAccessor manhuntMod;
+
     private static BlockPos markerPos;
     public static void tick(MinecraftServer server) {
         if (markerPos == null)
@@ -94,7 +96,7 @@ public class GameManager {
         if (GameDataManager.phase == GameDataManager.Phase.HEAD_START)
             GameDataManager.timerTicks --;
         if (GameDataManager.timerTicks <= 0)
-            freeHunters();
+            freeHunters(server);
     }
 
     private static void hunterWon() {
@@ -104,8 +106,44 @@ public class GameManager {
         // TODO
     }
 
-    private static void freeHunters() {
-        // TODO
+    private static void freeHunters(MinecraftServer server) {
+        Scoreboard scoreboard = server.getScoreboard();
+        GameDataManager.phase = GameDataManager.Phase.PLAYING;
+
+        Text runnerTitle = Text.empty()
+                .append(Text.literal("Be careful !").formatted(Formatting.DARK_RED));
+        Text runnerSubtitle = Text.empty()
+                .append(Text.literal("Hunters have been ").formatted(Formatting.YELLOW))
+                .append(Text.literal("freed").formatted(Formatting.YELLOW, Formatting.BOLD));
+        Text hunterTitle = Text.empty()
+                .append(Text.literal("Chase them down !").formatted(Formatting.RED));
+        Text hunterSubtitle = Text.empty()
+                .append(Text.literal("Don't wast your time").formatted(Formatting.YELLOW));
+
+        server.getPlayerManager().broadcast(Text.empty()
+                .append(Text.literal("Hunters freed").formatted(Formatting.BLUE, Formatting.BOLD, Formatting.ITALIC)),
+                false
+        );
+
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+
+            if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("hunter")) {
+                player.changeGameMode(GameMode.SURVIVAL);
+                player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 100));
+                player.giveItemStack(manhuntMod.mkCompass());
+
+                player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
+                player.networkHandler.sendPacket(new SubtitleS2CPacket(hunterSubtitle));
+                player.networkHandler.sendPacket(new TitleS2CPacket(hunterTitle));
+            }
+
+            if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("runner")) {
+                player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
+                player.networkHandler.sendPacket(new SubtitleS2CPacket(runnerSubtitle));
+                player.networkHandler.sendPacket(new TitleS2CPacket(runnerTitle));
+            }
+
+        }
     }
 
     public static void setup(ServerPlayerEntity host) {
@@ -261,7 +299,7 @@ public class GameManager {
          * ANNOUNCE
          */
 
-        ManhuntModAccessor manhunt = ((ManhuntModAccessor) FabricLoader.getInstance()
+        manhuntMod = ((ManhuntModAccessor) FabricLoader.getInstance()
                 .getModContainer("manhunt")
                 .flatMap(mod -> FabricLoader.getInstance()
                         .getEntrypointContainers("main", ModInitializer.class)
@@ -270,7 +308,7 @@ public class GameManager {
                         .map(e -> (ManHunt) e.getEntrypoint())
                         .findFirst())
                 .orElseThrow());
-        manhunt.accessSetMod(host.getCommandSource(), false);
+        manhuntMod.accessSetMod(host.getCommandSource(), false);
 
         server.getPlayerManager().broadcast(Text.empty()
                         .append(Text.literal("Game hosted by ").formatted(Formatting.GREEN))
