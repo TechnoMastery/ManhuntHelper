@@ -375,6 +375,11 @@ public class GameManager {
         Text hunterSubtitle = Text.empty()
                 .append(Text.literal("The runners are going...").formatted(Formatting.YELLOW));
 
+        server.getPlayerManager().broadcast(Text.empty()
+                .append(Text.literal("Runners freed").formatted(Formatting.GREEN, Formatting.BOLD, Formatting.ITALIC)),
+                false
+        );
+
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
 
             if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("runner")) {
