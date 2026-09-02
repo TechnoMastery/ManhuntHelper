@@ -75,6 +75,20 @@ java {
     // if it is present.
     // If you remove this line, sources will not be generated.
     withSourcesJar()
+    withJavadocJar()
+}
+
+javadoc {
+    options.encoding = "UTF-8"
+    options.charSet = "UTF-8"
+    options.docEncoding = "UTF-8"
+    options.links(
+            "https://maven.fabricmc.net/docs/yarn-${project.yarn_mappings}/",
+            "https://maven.fabricmc.net/docs/fabric-loader-${project.loader_version}/",
+            "https://maven.fabricmc.net/docs/fabric-api-${project.fabric_version}/",
+            "https://javadoc.io/doc/com.google.code.gson/gson/2.11.0/",
+            "https://javadoc.io/doc/org.jetbrains/annotations/24.1.0/"
+    )
 }
 
 jar {
@@ -87,16 +101,20 @@ jar {
 publishing {
     publications {
         create("mavenJava", MavenPublication) {
-            artifactId = project.archives_base_name
+            artifactId = "manhunt-helper"
             from components.java
         }
     }
 
     // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
+        maven {
+            name 'GitHubPackages'
+            url = uri("https://maven.pkg.github.com/TechnoMastery/ManhuntHelper")
+            credentials {
+                username = project.findProperty("gpr.user")
+                password = project.findProperty("gpr.key")
+            }
+        }
     }
 }
