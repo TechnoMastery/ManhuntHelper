@@ -261,6 +261,20 @@ public class ManhuntHelper implements ModInitializer {
                                         GameManager.run(host);
                                         return 1;
                                     }))
+                                    .then(literal("close").executes(context -> {
+                                        assert context.getSource().getEntity() != null;
+                                        if (!context.getSource().getEntity().getCommandTags().contains("host")) {
+                                            context.getSource().sendError(Text.literal("You are not this game's host!"));
+                                            return 0;
+                                        }
+                                        if (GameDataManager.phase != GameDataManager.Phase.FINISHED) {
+                                            context.getSource().sendError(Text.literal("You need to finish the game before deleting and resetting the server."));
+                                            return 0;
+                                        }
+                                        GameManager.manhuntMod.setResetReqAt(System.currentTimeMillis());
+                                        GameManager.manhuntMod.reset(context.getSource());
+                                        return 0;
+                                    }))
                             )
             );
         }));

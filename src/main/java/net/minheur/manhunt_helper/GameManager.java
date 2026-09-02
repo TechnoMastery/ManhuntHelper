@@ -32,7 +32,7 @@ import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
 
 public class GameManager {
 
-    private static ManhuntModAccessor manhuntMod;
+    public static ManhuntModAccessor manhuntMod;
 
     private static BlockPos markerPos;
     public static void tick(MinecraftServer server) {
