@@ -10,10 +10,7 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
 import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.ScoreboardCriterion;
-import net.minecraft.scoreboard.ScoreboardObjective;
-import net.minecraft.scoreboard.Team;
+import net.minecraft.scoreboard.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -71,17 +68,23 @@ public class GameManager {
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 255));
             }
 
-            if (GameDataManager.phase != GameDataManager.Phase.WAITING)
-                if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("runner") && (deaths != null && scoreboard.getScore(player, deaths).getScore() >= 1)) {
-                server.getPlayerManager().broadcast(Text.empty()
-                        .append(Text.literal("The runner ").formatted(Formatting.GOLD))
-                        .append(Text.literal(player.getName().getString()).formatted(Formatting.GOLD, Formatting.BOLD))
-                        .append(Text.literal(" is dead !").formatted(Formatting.GOLD)),
-                        false
-                );
-                GameDataManager.runnerLeft --;
-                scoreboard.getOrCreateScore(player, deaths).setScore(-1);
-                player.changeGameMode(GameMode.SPECTATOR);
+            Team team = scoreboard.getScoreHolderTeam(player.getName().getString());
+            if (team != null) {
+                if (team.getName().equals("runner")
+                        && deaths != null) {
+                        ReadableScoreboardScore score = scoreboard.getScore(player, deaths);
+                    if (score != null && score.getScore() >= 1) {
+                        server.getPlayerManager().broadcast(Text.empty()
+                                        .append(Text.literal("The runner ").formatted(Formatting.GOLD))
+                                        .append(Text.literal(player.getName().getString()).formatted(Formatting.GOLD, Formatting.BOLD))
+                                        .append(Text.literal(" is dead !").formatted(Formatting.GOLD)),
+                                false
+                        );
+                        GameDataManager.runnerLeft--;
+                        scoreboard.getOrCreateScore(player, deaths).setScore(-1);
+                        player.changeGameMode(GameMode.SPECTATOR);
+                    }
+                }
             }
 
             if (player.getAdvancementTracker().getProgress(advancementDragon).isDone())
@@ -127,13 +130,10 @@ public class GameManager {
                 false
         );
 
-        MarkerEntity marker = world.getEntitiesByType(EntityType.MARKER,
+        world.getEntitiesByType(EntityType.MARKER,
                         m -> m.getCommandTags().contains("spawn"))
                 .stream()
-                .findFirst()
-                .orElse(null);
-        if (marker != null)
-            marker.kill(world);
+                .findFirst().ifPresent(marker -> marker.kill(world));
     }
 
     private static void hunterWon(MinecraftServer server) {
@@ -201,22 +201,27 @@ public class GameManager {
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
 
-            if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("hunter")) {
-                player.changeGameMode(GameMode.SURVIVAL);
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 100));
-                player.giveItemStack(ManhuntModAccessor.mkCompass());
+            Team team = scoreboard.getScoreHolderTeam(player.getName().getString());
 
-                player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
-                player.networkHandler.sendPacket(new SubtitleS2CPacket(hunterSubtitle));
-                player.networkHandler.sendPacket(new TitleS2CPacket(hunterTitle));
+            if (team != null) {
+
+                if (team.getName().equals("hunter")) {
+                    player.changeGameMode(GameMode.SURVIVAL);
+                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 100));
+                    player.giveItemStack(ManhuntModAccessor.mkCompass());
+
+                    player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
+                    player.networkHandler.sendPacket(new SubtitleS2CPacket(hunterSubtitle));
+                    player.networkHandler.sendPacket(new TitleS2CPacket(hunterTitle));
+                }
+
+                if (team.getName().equals("runner")) {
+                    player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
+                    player.networkHandler.sendPacket(new SubtitleS2CPacket(runnerSubtitle));
+                    player.networkHandler.sendPacket(new TitleS2CPacket(runnerTitle));
+                }
+
             }
-
-            if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("runner")) {
-                player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
-                player.networkHandler.sendPacket(new SubtitleS2CPacket(runnerSubtitle));
-                player.networkHandler.sendPacket(new TitleS2CPacket(runnerTitle));
-            }
-
         }
     }
 
@@ -395,13 +400,18 @@ public class GameManager {
 
         for (ServerPlayerEntity other : server.getPlayerManager().getPlayerList()) {
 
-            if (scoreboard.getScoreHolderTeam(other.getName().getString()).equals("runner")) {
-                other.getCommandTags().add("player");
-                Runners.addRunner(other.getUuidAsString());
-                GameDataManager.runnerLeft ++;
+            Team team = scoreboard.getScoreHolderTeam(other.getName().getString());
+
+            if (team != null) {
+                if (team.getName().equals("runner")) {
+                    other.getCommandTags().add("player");
+                    Runners.addRunner(other.getUuidAsString());
+                    GameDataManager.runnerLeft++;
+                }
+                if (team.getName().equals("hunter"))
+                    other.getCommandTags().add("player");
             }
-            if (scoreboard.getScoreHolderTeam(other.getName().getString()).equals("hunter"))
-                other.getCommandTags().add("player");
+
             if (other.getCommandTags().contains("player"))
                 other.getCommandTags().add("stuck");
 
@@ -452,20 +462,23 @@ public class GameManager {
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
 
-            if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("runner")) {
-                player.getCommandTags().remove("stuck");
-                player.changeGameMode(GameMode.SURVIVAL);
-                player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 100));
+            Team team = scoreboard.getScoreHolderTeam(player.getName().getString());
+            if (team != null) {
+                if (team.getName().equals("runner")) {
+                    player.getCommandTags().remove("stuck");
+                    player.changeGameMode(GameMode.SURVIVAL);
+                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 100));
 
-                player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
-                player.networkHandler.sendPacket(new SubtitleS2CPacket(runnerSubtitle));
-                player.networkHandler.sendPacket(new TitleS2CPacket(runnerTitle));
-            }
+                    player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
+                    player.networkHandler.sendPacket(new SubtitleS2CPacket(runnerSubtitle));
+                    player.networkHandler.sendPacket(new TitleS2CPacket(runnerTitle));
+                }
 
-            if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("hunter")) {
-                player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
-                player.networkHandler.sendPacket(new SubtitleS2CPacket(instantRelease ? hunterAltSubtitle : hunterSubtitle));
-                player.networkHandler.sendPacket(new TitleS2CPacket(hunterTitle));
+                if (team.getName().equals("hunter")) {
+                    player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
+                    player.networkHandler.sendPacket(new SubtitleS2CPacket(instantRelease ? hunterAltSubtitle : hunterSubtitle));
+                    player.networkHandler.sendPacket(new TitleS2CPacket(hunterTitle));
+                }
             }
 
         }

@@ -60,6 +60,7 @@ public class ManhuntHelper implements ModInitializer {
                                     .then(literal("runner").executes(context -> {
                                         if (!isTeamChoiceAllowed(context)) return 0;
                                         ServerPlayerEntity player = context.getSource().getPlayer();
+                                        if (player == null) return 0;
                                         Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
                                         scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("runner"));
                                         context.getSource().sendFeedback(() -> Text.empty()
@@ -71,6 +72,7 @@ public class ManhuntHelper implements ModInitializer {
                                     .then(literal("hunter").executes(context -> {
                                         if (!isTeamChoiceAllowed(context)) return 0;
                                         ServerPlayerEntity player = context.getSource().getPlayer();
+                                        if (player == null) return 0;
                                         Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
                                         scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("hunter"));
                                         context.getSource().sendFeedback(() -> Text.empty()
@@ -82,6 +84,7 @@ public class ManhuntHelper implements ModInitializer {
                                     .then(literal("spectator").executes(context -> {
                                         if (!isTeamChoiceAllowed(context)) return 0;
                                         ServerPlayerEntity player = context.getSource().getPlayer();
+                                        if (player == null) return 0;
                                         Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
                                         Team team = scoreboard.getScoreHolderTeam(player.getName().getString());
                                         if (team != null)
@@ -301,13 +304,13 @@ public class ManhuntHelper implements ModInitializer {
     }
 
     private static boolean isTeamChoiceAllowed(CommandContext<ServerCommandSource> context) {
-        if (!(context.getSource().getEntity() instanceof ServerPlayerEntity))
+        if (!(context.getSource().getEntity() instanceof ServerPlayerEntity player))
             return false;
         if (GameDataManager.phase != GameDataManager.Phase.CONFIG) {
             context.getSource().sendError(Text.literal("Need to be in config state to choose your team."));
             return false;
         }
-        if (!GameDataManager.allowChooseTeam && !context.getSource().getPlayer().getCommandTags().contains("host")) {
+        if (!GameDataManager.allowChooseTeam && !player.getCommandTags().contains("host")) {
             context.getSource().sendError(Text.literal("This game's host disabled team choice."));
             return false;
         }
