@@ -319,4 +319,8 @@ public class GameManager {
         server.getPlayerManager().broadcast(Text.literal("Preparing to start...").formatted(Formatting.DARK_PURPLE), false);
     }
 
+    public static void run(ServerPlayerEntity host) {
+        // TODO
+    }
+
 }
