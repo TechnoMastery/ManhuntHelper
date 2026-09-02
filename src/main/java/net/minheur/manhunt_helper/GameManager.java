@@ -1,9 +1,6 @@
 package net.minheur.manhunt_helper;
 
-import com.alphaduck.manhunt.ManHunt;
 import com.alphaduck.manhunt.Runners;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.MarkerEntity;
@@ -74,7 +71,8 @@ public class GameManager {
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 255));
             }
 
-            if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("runner") && (deaths != null && scoreboard.getScore(player, deaths).getScore() >= 1)) {
+            if (GameDataManager.phase != GameDataManager.Phase.WAITING)
+                if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("runner") && (deaths != null && scoreboard.getScore(player, deaths).getScore() >= 1)) {
                 server.getPlayerManager().broadcast(Text.empty()
                         .append(Text.literal("The runner ").formatted(Formatting.GOLD))
                         .append(Text.literal(player.getName().getString()).formatted(Formatting.GOLD, Formatting.BOLD))
