@@ -452,9 +452,14 @@ public class GameManager {
                 .append(Text.literal("Hunter").formatted(Formatting.RED, Formatting.BOLD));
         Text hunterSubtitle = Text.empty()
                 .append(Text.literal("The runners are going...").formatted(Formatting.YELLOW));
+        Text hunterAltSubtitle = Text.empty()
+                .append(Text.literal("Chase the runners !").formatted(Formatting.YELLOW));
 
-        server.getPlayerManager().broadcast(Text.empty()
-                .append(Text.literal("Runners freed").formatted(Formatting.GREEN, Formatting.BOLD, Formatting.ITALIC)),
+        boolean instantRelease = GameDataManager.timerTicks == 0;
+
+        server.getPlayerManager().broadcast(instantRelease ? Text.empty()
+                        .append(Text.literal("Game started !").formatted(Formatting.GOLD, Formatting.BOLD, Formatting.ITALIC)) : Text.empty()
+                        .append(Text.literal("Runners freed").formatted(Formatting.GREEN, Formatting.BOLD, Formatting.ITALIC)),
                 false
         );
 
@@ -472,13 +477,13 @@ public class GameManager {
 
             if (scoreboard.getScoreHolderTeam(player.getName().getString()).equals("hunter")) {
                 player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
-                player.networkHandler.sendPacket(new SubtitleS2CPacket(hunterSubtitle));
+                player.networkHandler.sendPacket(new SubtitleS2CPacket(instantRelease ? hunterAltSubtitle : hunterSubtitle));
                 player.networkHandler.sendPacket(new TitleS2CPacket(hunterTitle));
             }
 
         }
 
-        GameDataManager.phase = GameDataManager.Phase.HEAD_START;
+        GameDataManager.phase = instantRelease ? GameDataManager.Phase.PLAYING : GameDataManager.Phase.HEAD_START;
 
         GameRules rules = world.getGameRules();
         rules.setValue(GameRules.ADVANCE_TIME, true, server);
