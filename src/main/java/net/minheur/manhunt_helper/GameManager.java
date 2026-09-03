@@ -84,6 +84,7 @@ public class GameManager {
                         );
                         GameDataManager.runnerLeft--;
                         scoreboard.getOrCreateScore(player, deaths).setScore(-1);
+                        Runners.removeRunner(player.getUuid().toString());
                         player.changeGameMode(GameMode.SPECTATOR);
                     }
                 }
