@@ -12,10 +12,12 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.entity.Entity;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.WorldSavePath;
@@ -56,6 +58,17 @@ public class ManhuntHelper implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
             dispatcher.register(
                     literal("mh")
+                            .then(literal("unstuck").executes(context -> {
+                                if (GameDataManager.phase != GameDataManager.Phase.WAITING) {
+                                    context.getSource().sendError(Text.literal("Please be in WAITING phase before running this command."));
+                                    return 0;
+                                }
+                                Entity toKill = context.getSource().getEntity();
+                                if (toKill == null) return 0;
+                                toKill.kill((ServerWorld) toKill.getEntityWorld());
+                                context.getSource().sendFeedback(() -> Text.literal("Killed you to get back to correct spawn!"), true);
+                                return 1;
+                            }))
                             .then(literal("team")
                                     .then(literal("runner").executes(context -> {
                                         if (!isTeamChoiceAllowed(context)) return 0;
