@@ -59,7 +59,7 @@ public class GameManager {
 
             if (
                     !(player.getCommandTags().contains("admin") || player.getCommandTags().contains("host"))
-                    && !(GameDataManager.phase == GameDataManager.Phase.WAITING || GameDataManager.phase == GameDataManager.Phase.FINISHED)
+                    && !(GameDataManager.phase == GameDataManager.Phase.WAITING || GameDataManager.phase == GameDataManager.Phase.CONFIG || GameDataManager.phase == GameDataManager.Phase.FINISHED)
             ) player.changeGameMode(GameMode.SPECTATOR);
 
             if (displayTimer) player.sendMessage(timerMessage, true);
