@@ -40,7 +40,7 @@ public class GameManager {
                     .findFirst()
                     .orElse(null);
 
-        boolean giveEffects = GameDataManager.phase == GameDataManager.Phase.WAITING || GameDataManager.phase == GameDataManager.Phase.FINISHED;
+        boolean phaseNotPlaying = GameDataManager.phase == GameDataManager.Phase.WAITING || GameDataManager.phase == GameDataManager.Phase.CONFIG || GameDataManager.phase == GameDataManager.Phase.FINISHED;
         Scoreboard scoreboard = server.getScoreboard();
         ScoreboardObjective deaths = scoreboard.getNullableObjective("deaths");
         AdvancementEntry advancementDragon = server.getAdvancementLoader().get(Identifier.of("minecraft", "end/kill_dragon"));
@@ -59,12 +59,12 @@ public class GameManager {
 
             if (
                     !(player.getCommandTags().contains("admin") || player.getCommandTags().contains("host"))
-                    && !(GameDataManager.phase == GameDataManager.Phase.WAITING || GameDataManager.phase == GameDataManager.Phase.CONFIG || GameDataManager.phase == GameDataManager.Phase.FINISHED)
+                    && !phaseNotPlaying
             ) player.changeGameMode(GameMode.SPECTATOR);
 
             if (displayTimer) player.sendMessage(timerMessage, true);
 
-            if (giveEffects) {
+            if (phaseNotPlaying) {
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 40, 25));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.SATURATION, 40, 255));
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 255));
