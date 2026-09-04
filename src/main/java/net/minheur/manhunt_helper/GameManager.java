@@ -53,13 +53,14 @@ public class GameManager {
 
         // player tick
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            Team team = scoreboard.getScoreHolderTeam(player.getName().getString());
 
             if (player.getCommandTags().contains("stuck") && markerPos != null)
                 player.requestTeleport(markerPos.getX(), markerPos.getY(), markerPos.getZ());
 
             if (
                     !(player.getCommandTags().contains("admin") || player.getCommandTags().contains("host"))
-                    && !phaseNotPlaying
+                    && !phaseNotPlaying && team == null
             ) player.changeGameMode(GameMode.SPECTATOR);
 
             if (displayTimer) player.sendMessage(timerMessage, true);
@@ -70,7 +71,6 @@ public class GameManager {
                 player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 255));
             }
 
-            Team team = scoreboard.getScoreHolderTeam(player.getName().getString());
             if (team != null) {
                 if (team.getName().equals("runner")
                         && deaths != null) {
