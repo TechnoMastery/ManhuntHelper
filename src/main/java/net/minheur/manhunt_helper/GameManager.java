@@ -100,7 +100,7 @@ public class GameManager {
 
         if (GameDataManager.phase == GameDataManager.Phase.HEAD_START)
             GameDataManager.timerTicks --;
-        if (GameDataManager.timerTicks <= 0)
+        if (GameDataManager.timerTicks <= 0 && GameDataManager.phase == GameDataManager.Phase.HEAD_START)
             freeHunters(server);
     }
 
