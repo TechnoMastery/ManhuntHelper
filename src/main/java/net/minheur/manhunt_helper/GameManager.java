@@ -123,7 +123,7 @@ public class GameManager {
         }
         host.getCommandTags().remove("host");
 
-        world.getWorldBorder().setSize(10);
+        world.getWorldBorder().setSize(59999968.0);
         world.getGameRules().setValue(GameRules.SPAWN_MONSTERS, false, server);
         world.getGameRules().setValue(GameRules.DO_MOB_SPAWNING, false, server);
 
@@ -137,6 +137,8 @@ public class GameManager {
                         m -> m.getCommandTags().contains("spawn"))
                 .stream()
                 .findFirst().ifPresent(marker -> marker.kill(world));
+
+        GameDataManager.resetData();
     }
 
     private static void hunterWon(MinecraftServer server) {

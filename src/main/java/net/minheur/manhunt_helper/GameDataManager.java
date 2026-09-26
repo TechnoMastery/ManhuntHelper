@@ -17,6 +17,14 @@ public class GameDataManager {
 
     public static boolean allowChooseTeam = true;
 
+    public static void resetData() {
+        startCountdown = true;
+        timerTicks = 2400;
+        phase = Phase.WAITING;
+        runnerLeft = 0;
+        allowChooseTeam = true;
+    }
+
     public static void setup() {
         file = ManhuntHelper.worldPath.resolve("manhunt_config.json");
 
