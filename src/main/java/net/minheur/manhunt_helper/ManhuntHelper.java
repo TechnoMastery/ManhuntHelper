@@ -181,6 +181,7 @@ public class ManhuntHelper implements ModInitializer {
                                                             .executes(context -> {
                                                                 if (!isConfigStage(context)) return 0;
                                                                 GameDataManager.allowChooseTeam = BoolArgumentType.getBool(context, "allows");
+                                                                context.getSource().sendFeedback(() -> Text.literal("Set team choice to " + GameDataManager.allowChooseTeam), true);
                                                                 return 1;
                                                             })
                                                     )
@@ -189,13 +190,23 @@ public class ManhuntHelper implements ModInitializer {
                                                     .executes(context -> {
                                                         if (!isConfigStage(context)) return 0;
                                                         int headStartSeconds = GameDataManager.timerTicks / 20;
-                                                        context.getSource().sendFeedback(() -> Text.literal("Current configured headstart: " + String.valueOf(headStartSeconds)), false);
+                                                        context.getSource().sendFeedback(() -> Text.literal("Current configured headstart: " + headStartSeconds), false);
                                                         return 1;
                                                     })
                                                     .then(argument("seconds", IntegerArgumentType.integer())
                                                             .executes(context -> {
                                                                 if (!isConfigStage(context)) return 0;
                                                                 GameDataManager.timerTicks = IntegerArgumentType.getInteger(context, "seconds") *20;
+                                                                return 1;
+                                                            })
+                                                    )
+                                            )
+                                            .then(literal("startTimer")
+                                                    .then(argument("enabled", BoolArgumentType.bool())
+                                                            .executes(context -> {
+                                                                if (!isConfigStage(context)) return 0;
+                                                                GameDataManager.startCountdown = BoolArgumentType.getBool(context, "enabled");
+                                                                context.getSource().sendFeedback(() -> Text.literal("Set start time to " + GameDataManager.startCountdown), true);
                                                                 return 1;
                                                             })
                                                     )
