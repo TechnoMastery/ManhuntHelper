@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
@@ -320,6 +321,39 @@ public class ManhuntHelper implements ModInitializer {
                             )
             );
         }));
+
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            ServerPlayerEntity player = handler.player;
+
+            ServerPlayerEntity host = player.getEntityWorld().getServer()
+                    .getPlayerManager()
+                    .getPlayerList()
+                    .stream()
+                    .filter(p -> p.getCommandTags().contains("host"))
+                    .findFirst()
+                    .orElse(null);
+
+            Text message;
+            // waiting and can host
+            if (GameDataManager.phase == GameDataManager.Phase.WAITING && AllowedHostManager.isHost(player.getUuid()))
+                message = Text.empty().append(Text.literal("Hello host ").formatted(Formatting.GREEN)).append(Text.literal(player.getName().getString()).formatted(Formatting.GREEN, Formatting.BOLD))
+                                        .append(Text.literal(" ! (").formatted(Formatting.GREEN)).append(Text.literal("/mh host claim").formatted(Formatting.GOLD))
+                                        .append(Text.literal(")").formatted(Formatting.GREEN));
+            // waiting and can't host / config / preparing
+            else if (GameDataManager.phase == GameDataManager.Phase.WAITING || GameDataManager.phase == GameDataManager.Phase.CONFIG || GameDataManager.phase == GameDataManager.Phase.PREPARE)
+                message = Text.empty().append(Text.literal("Hello ").formatted(Formatting.GREEN)).append(Text.literal(player.getName().getString()).formatted(Formatting.GREEN, Formatting.BOLD))
+                        .append(Text.literal(" ! This game is waiting. Your host is ").formatted(Formatting.GREEN))
+                        .append(Text.literal(host == null ? "unknown" : host.getName().getString()).formatted(Formatting.GREEN, Formatting.BOLD));
+            // game finished
+            else if (GameDataManager.phase == GameDataManager.Phase.FINISHED)
+                message = Text.literal("Game is finished!").formatted(Formatting.GREEN, Formatting.BOLD);
+            // else game is running
+            else message = Text.empty().append(Text.literal("Hello ").formatted(Formatting.GREEN)).append(Text.literal(player.getName().getString()).formatted(Formatting.GREEN, Formatting.BOLD))
+                        .append(Text.literal(" ! Game is running. The host is ").formatted(Formatting.GREEN))
+                        .append(Text.literal(host == null ? "unknown" : host.getName().getString()).formatted(Formatting.GREEN, Formatting.BOLD));
+
+            player.sendMessage(message, false);
+        });
 
     }
 
