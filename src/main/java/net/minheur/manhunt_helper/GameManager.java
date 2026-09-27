@@ -212,6 +212,7 @@ public class GameManager {
 
                 if (team.getName().equals("hunter")) {
                     player.changeGameMode(GameMode.SURVIVAL);
+                    player.getCommandTags().remove("stuck");
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 100));
                     player.giveItemStack(ManhuntModAccessor.mkCompass());
 
