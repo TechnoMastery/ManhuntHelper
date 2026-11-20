@@ -2,6 +2,7 @@ package net.minheur.manhunt_helper;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,6 +17,7 @@ public class GameDataManager {
     public static int runnerLeft = 0;
 
     public static boolean allowChooseTeam = true;
+    public static TeamChatMode teamChatMode = TeamChatMode.ALLOWED;
 
     public static void resetData() {
         startCountdown = true;
@@ -23,6 +25,7 @@ public class GameDataManager {
         phase = Phase.WAITING;
         runnerLeft = 0;
         allowChooseTeam = true;
+        teamChatMode = TeamChatMode.ALLOWED;
     }
 
     public static void setup() {
@@ -62,6 +65,7 @@ public class GameDataManager {
         o.addProperty("phase", phase.coded);
         o.addProperty("runnerLeft", runnerLeft);
         o.addProperty("allowChooseTeam", allowChooseTeam);
+        o.addProperty("teamChatMode", teamChatMode.coded);
         return o.toString();
     }
     public static void loadFromJson(String json) {
@@ -70,6 +74,7 @@ public class GameDataManager {
         phase = Phase.getFromCoded(o.get("phase").getAsString());
         runnerLeft = o.get("runnerLeft").getAsInt();
         allowChooseTeam = o.get("allowChooseTeam").getAsBoolean();
+        teamChatMode = TeamChatMode.getFromCoded(o.get("teamChatMode").getAsString());
     }
 
     public enum Phase {
@@ -83,13 +88,30 @@ public class GameDataManager {
 
         public final String coded;
 
-        public static Phase getFromCoded(String coded) {
+        public static @Nullable Phase getFromCoded(String coded) {
             for (Phase p : Phase.values())
                 if (p.coded.equals(coded)) return p;
             return null;
         }
 
         Phase(String coded) {
+            this.coded = coded;
+        }
+    }
+    public enum TeamChatMode {
+        FORBIDDEN("forbidden"),
+        ALLOWED("allowed"),
+        FORCED("forced");
+
+        public final String coded;
+
+        public static @Nullable TeamChatMode getFromCoded(String coded) {
+            for (TeamChatMode m : TeamChatMode.values())
+                if (m.coded.equals(coded)) return m;
+            return null;
+        }
+
+        TeamChatMode(String coded) {
             this.coded = coded;
         }
     }
