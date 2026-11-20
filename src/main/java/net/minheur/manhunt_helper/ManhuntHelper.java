@@ -108,6 +108,24 @@ public class ManhuntHelper implements ModInitializer {
                                         }
                                         return 1;
                                     })
+                                    .then(argument("enabled", BoolArgumentType.bool())
+                                            .executes(context -> {
+                                                if (!(context.getSource().getEntity() instanceof ServerPlayerEntity player)) return 0; // only players
+                                                if (
+                                                        !(isAdmin(context.getSource(), player) || AllowedHostManager.isHost(player.getUuid())) // is not admin or host
+                                                        && GameDataManager.teamChatMode != GameDataManager.TeamChatMode.ALLOWED // and team chat is not choosable
+                                                ) { // we return an error
+                                                    context.getSource().sendError(Text.literal("You cannot change your team chat mode : it is in " + GameDataManager.teamChatMode.coded));
+                                                    return 0;
+                                                }
+                                                // else we allow changement
+                                                boolean activated = BoolArgumentType.getBool(context, "enabled");
+                                                if (activated) GameDataManager.teamChatEnabledPlayers.add(player.getUuid());
+                                                else GameDataManager.teamChatEnabledPlayers.remove(player.getUuid());
+                                                context.getSource().sendMessage(Text.literal("You team chat mode has been changed to " + activated));
+                                                return 1;
+                                            })
+                                    )
                             )
                             .then(literal("unstuck").executes(context -> {
                                 if (GameDataManager.phase != GameDataManager.Phase.WAITING) {
