@@ -80,14 +80,22 @@ public class ManhuntHelper implements ModInitializer {
                                             context.getSource().sendMessage(Text.literal("Team chat in DISABLED by the host."));
                                         else if (chatMode == GameDataManager.TeamChatMode.FORCED) {
                                             context.getSource().sendMessage(Text.literal("Team chat in FORCED by the host."));
-                                            if ( // if admin CAN BYPASS
-                                                    context.getSource().getEntity() instanceof ServerPlayerEntity player
-                                                            && isAdmin(context.getSource(), player)
-                                            ) {
-                                                context.getSource().sendMessage(Text.literal("You are ADMIN and can still toggle your chat to global."));
-                                                if (GameDataManager.teamChatEnabledPlayers.contains(player.getUuid()))
-                                                    context.getSource().sendMessage(Text.literal("You have Team Chat enabled for this game."));
-                                                else context.getSource().sendMessage(Text.literal("You have Team Chat disabled for this game."));
+                                            // if player we may have more to say
+                                            if (context.getSource().getEntity() instanceof ServerPlayerEntity player) {
+                                                if (isAdmin(context.getSource(), player)) { // ADMIN bypass
+                                                    context.getSource().sendMessage(Text.literal("You are ADMIN and can still toggle your chat to global."));
+                                                    if (GameDataManager.teamChatEnabledPlayers.contains(player.getUuid()))
+                                                        context.getSource().sendMessage(Text.literal("You have Team Chat enabled for this game."));
+                                                    else
+                                                        context.getSource().sendMessage(Text.literal("You have Team Chat disabled for this game."));
+                                                }
+                                                if (AllowedHostManager.isHost(player.getUuid())) { // player is HOST
+                                                    context.getSource().sendMessage(Text.literal("You are the HOST and can still toggle your chat to global."));
+                                                    if (GameDataManager.teamChatEnabledPlayers.contains(player.getUuid()))
+                                                        context.getSource().sendMessage(Text.literal("You have Team Chat enabled for this game."));
+                                                    else
+                                                        context.getSource().sendMessage(Text.literal("You have Team Chat disabled for this game."));
+                                                }
                                             }
                                         }
                                         else {
