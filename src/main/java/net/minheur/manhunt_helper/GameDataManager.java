@@ -75,8 +75,7 @@ public class GameDataManager {
         o.addProperty("runnerLeft", runnerLeft);
         o.addProperty("allowChooseTeam", allowChooseTeam);
         o.addProperty("teamChatMode", teamChatMode.coded);
-        if (teamChatMode == TeamChatMode.ALLOWED)
-            o.add("teamChatPlayers", gson.toJsonTree(teamChatEnabledPlayers));
+        o.add("teamChatPlayers", gson.toJsonTree(teamChatEnabledPlayers));
         return o.toString();
     }
     public static void loadFromJson(String json) {
@@ -86,10 +85,8 @@ public class GameDataManager {
         runnerLeft = o.get("runnerLeft").getAsInt();
         allowChooseTeam = o.get("allowChooseTeam").getAsBoolean();
         teamChatMode = TeamChatMode.getFromCoded(o.get("teamChatMode").getAsString());
-        if (teamChatMode == TeamChatMode.ALLOWED)
-            teamChatEnabledPlayers = gson.fromJson(o.get("teamChatPlayers").getAsJsonArray(),
-                    new TypeToken<List<UUID>>() {}.getType());
-        else teamChatEnabledPlayers = null;
+        teamChatEnabledPlayers = gson.fromJson(o.get("teamChatPlayers").getAsJsonArray(),
+                new TypeToken<List<UUID>>() {}.getType());
     }
 
     public enum Phase {
