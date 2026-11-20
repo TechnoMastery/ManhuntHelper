@@ -28,6 +28,7 @@ import net.minecraft.world.rule.GameRules;
 import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
 
 import java.nio.file.Path;
+import java.util.UUID;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -60,6 +61,35 @@ public class ManhuntHelper implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess, environment) -> {
             dispatcher.register(
                     literal("mh")
+                            .then(literal("teamChat")
+                                    .executes(context -> {
+                                        // phase check
+                                        GameDataManager.Phase phase = GameDataManager.phase;
+                                        if (phase == GameDataManager.Phase.WAITING
+                                                || phase == GameDataManager.Phase.CONFIG
+                                                || phase == GameDataManager.Phase.FINISHED
+                                        ) {
+                                            context.getSource().sendError(Text.literal("Please wait for the game to prepare before running this command."));
+                                            return 0;
+                                        }
+                                        // some data...
+                                        GameDataManager.TeamChatMode chatMode = GameDataManager.teamChatMode;
+                                        // check other mods
+                                        if (chatMode == GameDataManager.TeamChatMode.FORBIDDEN)
+                                            context.getSource().sendMessage(Text.literal("Team chat in DISABLED by the host."));
+                                        else if (chatMode == GameDataManager.TeamChatMode.FORCED)
+                                            context.getSource().sendMessage(Text.literal("Team chat in FORCED by the host."));
+                                        else {
+                                            context.getSource().sendMessage(Text.literal("Team chat in ALLOWED by the host."));
+                                            if (!(context.getSource().getEntity() instanceof ServerPlayerEntity player)) return 1;
+                                            UUID uuid = player.getUuid();
+                                            if (GameDataManager.teamChatEnabledPlayers.contains(uuid))
+                                                context.getSource().sendMessage(Text.literal("You have Team Chat enabled for this game."));
+                                            else context.getSource().sendMessage(Text.literal("You have Team Chat disabled for this game."));
+                                        }
+                                        return 1;
+                                    })
+                            )
                             .then(literal("unstuck").executes(context -> {
                                 if (GameDataManager.phase != GameDataManager.Phase.WAITING) {
                                     context.getSource().sendError(Text.literal("Please be in WAITING phase before running this command."));
