@@ -1,14 +1,20 @@
 package net.minheur.manhunt_helper;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class GameDataManager {
+    private static final Gson gson = new Gson();
     private static Path file;
 
     public static boolean startCountdown = true;
@@ -18,6 +24,8 @@ public class GameDataManager {
 
     public static boolean allowChooseTeam = true;
     public static TeamChatMode teamChatMode = TeamChatMode.ALLOWED;
+    // only if ALLOWED is selected
+    public static List<UUID> teamChatEnabledPlayers = new ArrayList<>();
 
     public static void resetData() {
         startCountdown = true;
@@ -26,6 +34,7 @@ public class GameDataManager {
         runnerLeft = 0;
         allowChooseTeam = true;
         teamChatMode = TeamChatMode.ALLOWED;
+        teamChatEnabledPlayers = new ArrayList<>();
     }
 
     public static void setup() {
@@ -66,6 +75,8 @@ public class GameDataManager {
         o.addProperty("runnerLeft", runnerLeft);
         o.addProperty("allowChooseTeam", allowChooseTeam);
         o.addProperty("teamChatMode", teamChatMode.coded);
+        if (teamChatMode == TeamChatMode.ALLOWED)
+            o.add("teamChatPlayers", gson.toJsonTree(teamChatEnabledPlayers));
         return o.toString();
     }
     public static void loadFromJson(String json) {
@@ -75,6 +86,10 @@ public class GameDataManager {
         runnerLeft = o.get("runnerLeft").getAsInt();
         allowChooseTeam = o.get("allowChooseTeam").getAsBoolean();
         teamChatMode = TeamChatMode.getFromCoded(o.get("teamChatMode").getAsString());
+        if (teamChatMode == TeamChatMode.ALLOWED)
+            teamChatEnabledPlayers = gson.fromJson(o.get("teamChatPlayers").getAsJsonArray(),
+                    new TypeToken<List<UUID>>() {}.getType());
+        else teamChatEnabledPlayers = null;
     }
 
     public enum Phase {
