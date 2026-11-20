@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -177,6 +178,38 @@ public class ManhuntHelper implements ModInitializer {
                                             })
                                     )
                                     .then(literal("config")
+                                            .then(literal("teamChatMode")
+                                                    .then(literal("allow")
+                                                            .executes(context -> {
+                                                                if (!isConfigStage(context)) return 0;
+                                                                GameDataManager.teamChatMode = GameDataManager.TeamChatMode.ALLOWED;
+                                                                context.getSource().sendFeedback(() -> Text.literal("Set team chat mode to allowed"), true);
+                                                                return 1;
+                                                            })
+                                                    )
+                                                    .then(literal("force")
+                                                            .executes(context -> {
+                                                                if (!isConfigStage(context)) return 0;
+                                                                GameDataManager.teamChatMode = GameDataManager.TeamChatMode.FORCED;
+                                                                context.getSource().sendFeedback(() -> Text.literal("Set team chat mode to forced"), true);
+                                                                return 1;
+                                                            })
+                                                    )
+                                                    .then(literal("forbid")
+                                                            .executes(context -> {
+                                                                if (!isConfigStage(context)) return 0;
+                                                                GameDataManager.teamChatMode = GameDataManager.TeamChatMode.FORBIDDEN;
+                                                                context.getSource().sendFeedback(() -> Text.literal("Set team chat mode to forbidden"), true);
+                                                                return 1;
+                                                            })
+                                                    )
+                                                    .executes(context -> {
+                                                        if (!isConfigStage(context)) return 0;
+                                                        String mode = GameDataManager.teamChatMode.coded;
+                                                        context.getSource().sendFeedback(() -> Text.literal("Team chat mode is set to " + mode), true);
+                                                        return 1;
+                                                    })
+                                            )
                                             .then(literal("allowChooseTeam")
                                                     .then(argument("allows", BoolArgumentType.bool())
                                                             .executes(context -> {
