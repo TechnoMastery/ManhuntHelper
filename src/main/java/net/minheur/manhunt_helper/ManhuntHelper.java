@@ -26,6 +26,7 @@ import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
 import net.minecraft.world.rule.GameRules;
 import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
+import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Path;
 import java.util.UUID;
@@ -144,8 +145,7 @@ public class ManhuntHelper implements ModInitializer {
                             .then(literal("admin")
                                     .requires(source -> { // requires op
                                         if (source.getEntity() instanceof ServerPlayerEntity player)
-                                            return source.getServer().getPlayerManager()
-                                                    .isOperator(player.getPlayerConfigEntry());
+                                            return isAdmin(source, player);
                                         return true;
                                     })
                                     .then(literal("addHost")
@@ -418,6 +418,11 @@ public class ManhuntHelper implements ModInitializer {
             player.sendMessage(message, false);
         });
 
+    }
+
+    private static boolean isAdmin(@NonNull ServerCommandSource source, @NonNull ServerPlayerEntity player) {
+        return source.getServer().getPlayerManager()
+                .isOperator(player.getPlayerConfigEntry());
     }
 
     public static Path getConfigDir() {
