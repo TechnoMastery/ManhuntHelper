@@ -187,6 +187,11 @@ public class ManhuntHelper implements ModInitializer {
                                             return isAdmin(player);
                                         return true;
                                     })
+                                    .then(literal("killGame").executes(context -> {
+                                        ManhuntModAccessor.setResetReqAt(System.currentTimeMillis());
+                                        ManhuntModAccessor.reset(context.getSource());
+                                        return 1;
+                                    }))
                                     .then(literal("addHost")
                                             .then(argument("player", EntityArgumentType.player())
                                                     .executes(context -> {
