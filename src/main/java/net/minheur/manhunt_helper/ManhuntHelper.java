@@ -15,6 +15,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
+import net.minecraft.network.message.SignedMessage;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
@@ -27,6 +28,7 @@ import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
 import net.minecraft.world.rule.GameRules;
 import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
+import net.minheur.manhunt_helper.mixin.TeamMsgAccessor;
 import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Path;
@@ -461,6 +463,18 @@ public class ManhuntHelper implements ModInitializer {
         MinecraftServer server = player.getEntityWorld().getServer();
         if (server == null) return false;
         return server.getPlayerManager().isOperator(player.getPlayerConfigEntry());
+    }
+
+    public static void sendAsTeam(ServerPlayerEntity sender, Team team, SignedMessage message) {
+        TeamMsgAccessor.invokeExecute(
+                sender.getCommandSource(),
+                sender,
+                team,
+                sender.getCommandSource().getServer().getPlayerManager().getPlayerList().stream()
+                        .filter(player -> player == sender || player.getScoreboardTeam() == team)
+                        .toList(),
+                message
+        );
     }
 
     public static Path getConfigDir() {
