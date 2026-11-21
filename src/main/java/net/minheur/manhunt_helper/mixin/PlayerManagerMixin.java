@@ -27,7 +27,7 @@ public class PlayerManagerMixin {
             CallbackInfo ci
     ) {
         // phase check
-        GameDataManager.Phase phase = GameDataManager.phase;
+        GameDataManager.Phase phase = GameDataManager.data.phase;
         if (phase == GameDataManager.Phase.WAITING
                 || phase == GameDataManager.Phase.CONFIG
                 || phase == GameDataManager.Phase.FINISHED
@@ -37,7 +37,7 @@ public class PlayerManagerMixin {
         Team team = sender.getScoreboardTeam();
         if (team == null) return;
 
-        GameDataManager.TeamChatMode teamChatMode = GameDataManager.teamChatMode;
+        GameDataManager.TeamChatMode teamChatMode = GameDataManager.data.teamChatMode;
         if ( // we automatically use team chat if not admin/host AND config set to FORCED
                 teamChatMode == GameDataManager.TeamChatMode.FORCED &&
                         !(ManhuntHelper.isAdmin(sender) || AllowedHostManager.isHost(sender.getUuid()))
@@ -51,7 +51,7 @@ public class PlayerManagerMixin {
                         !(ManhuntHelper.isAdmin(sender) || AllowedHostManager.isHost(sender.getUuid()))
         ) return; // do to so we return without canceling ci
         // ELSE it is either allowed, or the player is admin/host. in that case we can just check if they enabled it
-        if (GameDataManager.teamChatEnabledPlayers.contains(sender.getUuid())) { // enabled it
+        if (GameDataManager.data.teamChatEnabledPlayers.contains(sender.getUuid())) { // enabled it
             ci.cancel();
             ManhuntHelper.sendAsTeam(sender, team, message);
         }

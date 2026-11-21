@@ -40,15 +40,15 @@ public class GameManager {
                     .findFirst()
                     .orElse(null);
 
-        boolean phaseNotPlaying = GameDataManager.phase == GameDataManager.Phase.WAITING || GameDataManager.phase == GameDataManager.Phase.CONFIG || GameDataManager.phase == GameDataManager.Phase.FINISHED;
+        boolean phaseNotPlaying = GameDataManager.data.phase == GameDataManager.Phase.WAITING || GameDataManager.data.phase == GameDataManager.Phase.CONFIG || GameDataManager.data.phase == GameDataManager.Phase.FINISHED;
         Scoreboard scoreboard = server.getScoreboard();
         ScoreboardObjective deaths = scoreboard.getNullableObjective("deaths");
         AdvancementEntry advancementDragon = server.getAdvancementLoader().get(Identifier.of("minecraft", "end/kill_dragon"));
 
-        boolean displayTimer = GameDataManager.phase == GameDataManager.Phase.HEAD_START;
+        boolean displayTimer = GameDataManager.data.phase == GameDataManager.Phase.HEAD_START;
         Text timerMessage = Text.empty()
                 .append(Text.literal("Hunters are freed it ").formatted(Formatting.DARK_RED))
-                .append(Text.literal(String.valueOf(GameDataManager.timerTicks / 20)).formatted(Formatting.DARK_RED, Formatting.BOLD))
+                .append(Text.literal(String.valueOf(GameDataManager.data.timerTicks / 20)).formatted(Formatting.DARK_RED, Formatting.BOLD))
                 .append(Text.literal(" seconds !").formatted(Formatting.DARK_RED));
 
         // player tick
@@ -82,7 +82,7 @@ public class GameManager {
                                         .append(Text.literal(" is dead !").formatted(Formatting.GOLD)),
                                 false
                         );
-                        GameDataManager.runnerLeft--;
+                        GameDataManager.data.runnerLeft--;
                         scoreboard.getOrCreateScore(player, deaths).setScore(-1);
                         Runners.removeRunner(player.getUuid().toString());
                         player.changeGameMode(GameMode.SPECTATOR);
@@ -95,12 +95,12 @@ public class GameManager {
 
         }
 
-        if (GameDataManager.phase == GameDataManager.Phase.PLAYING && GameDataManager.runnerLeft <= 0)
+        if (GameDataManager.data.phase == GameDataManager.Phase.PLAYING && GameDataManager.data.runnerLeft <= 0)
             hunterWon(server);
 
-        if (GameDataManager.phase == GameDataManager.Phase.HEAD_START)
-            GameDataManager.timerTicks --;
-        if (GameDataManager.timerTicks <= 0 && GameDataManager.phase == GameDataManager.Phase.HEAD_START)
+        if (GameDataManager.data.phase == GameDataManager.Phase.HEAD_START)
+            GameDataManager.data.timerTicks --;
+        if (GameDataManager.data.timerTicks <= 0 && GameDataManager.data.phase == GameDataManager.Phase.HEAD_START)
             freeHunters(server);
     }
 
@@ -174,7 +174,7 @@ public class GameManager {
         }
     }
     private static void globalFinish(MinecraftServer server) {
-        GameDataManager.phase = GameDataManager.Phase.FINISHED;
+        GameDataManager.data.phase = GameDataManager.Phase.FINISHED;
         server.getOverworld().getGameRules().setValue(GameRules.PVP, false, server);
 
         server.getOverworld().getWorldBorder().setSize(10);
@@ -188,7 +188,7 @@ public class GameManager {
 
     private static void freeHunters(MinecraftServer server) {
         Scoreboard scoreboard = server.getScoreboard();
-        GameDataManager.phase = GameDataManager.Phase.PLAYING;
+        GameDataManager.data.phase = GameDataManager.Phase.PLAYING;
 
         Text runnerTitle = Text.empty()
                 .append(Text.literal("Be careful !").formatted(Formatting.DARK_RED));
@@ -252,7 +252,7 @@ public class GameManager {
          * DATA
          */
 
-        GameDataManager.phase = GameDataManager.Phase.CONFIG;
+        GameDataManager.data.phase = GameDataManager.Phase.CONFIG;
 
         /*
          * WORLD BORDER
@@ -413,7 +413,7 @@ public class GameManager {
                 if (team.getName().equals("runner")) {
                     other.getCommandTags().add("player");
                     Runners.addRunner(other.getUuidAsString());
-                    GameDataManager.runnerLeft++;
+                    GameDataManager.data.runnerLeft++;
                 }
                 if (team.getName().equals("hunter"))
                     other.getCommandTags().add("player");
@@ -435,7 +435,7 @@ public class GameManager {
         rules.setValue(GameRules.SPAWN_MONSTERS, true, server);
         rules.setValue(GameRules.DO_MOB_SPAWNING, true, server);
 
-        GameDataManager.phase = GameDataManager.Phase.PREPARE;
+        GameDataManager.data.phase = GameDataManager.Phase.PREPARE;
 
         server.getPlayerManager().broadcast(Text.literal("Preparing to start...").formatted(Formatting.DARK_PURPLE), false);
     }
@@ -459,7 +459,7 @@ public class GameManager {
         Text hunterAltSubtitle = Text.empty()
                 .append(Text.literal("Chase the runners !").formatted(Formatting.YELLOW));
 
-        boolean instantRelease = GameDataManager.timerTicks == 0;
+        boolean instantRelease = GameDataManager.data.timerTicks == 0;
 
         server.getPlayerManager().broadcast(instantRelease ? Text.empty()
                         .append(Text.literal("Game started !").formatted(Formatting.GOLD, Formatting.BOLD, Formatting.ITALIC)) : Text.empty()
@@ -497,7 +497,7 @@ public class GameManager {
 
         }
 
-        GameDataManager.phase = instantRelease ? GameDataManager.Phase.PLAYING : GameDataManager.Phase.HEAD_START;
+        GameDataManager.data.phase = instantRelease ? GameDataManager.Phase.PLAYING : GameDataManager.Phase.HEAD_START;
 
         GameRules rules = world.getGameRules();
         rules.setValue(GameRules.ADVANCE_TIME, true, server);

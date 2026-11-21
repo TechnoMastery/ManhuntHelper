@@ -34,7 +34,7 @@ public class TeamMsgMixin {
             CallbackInfo ci
     ) {
         // check stage
-        GameDataManager.Phase phase = GameDataManager.phase;
+        GameDataManager.Phase phase = GameDataManager.data.phase;
         if (phase == GameDataManager.Phase.WAITING
                 || phase == GameDataManager.Phase.CONFIG
                 || phase == GameDataManager.Phase.FINISHED
@@ -49,7 +49,7 @@ public class TeamMsgMixin {
         }
 
         if (!(ManhuntHelper.isAdmin(player) || AllowedHostManager.isHost(player.getUuid()))) // player not host nor admin
-            if (GameDataManager.teamChatMode == GameDataManager.TeamChatMode.FORBIDDEN) { // and cannot team chat
+            if (GameDataManager.data.teamChatMode == GameDataManager.TeamChatMode.FORBIDDEN) { // and cannot team chat
                 source.sendError(Text.literal("Team chat is FORBIDDEN for this game."));
                 ci.cancel();
             }
