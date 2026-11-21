@@ -15,6 +15,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.message.SignedMessage;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
@@ -29,10 +30,13 @@ import net.minecraft.world.World;
 import net.minecraft.world.rule.GameRules;
 import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
 import net.minheur.manhunt_helper.mixin.TeamMsgAccessor;
+import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -511,5 +515,23 @@ public class ManhuntHelper implements ModInitializer {
             return false;
         }
         return true;
+    }
+
+    public static PlayerEntity getClosestRunner(double x, double y, double z, double maxDistance, World world, @NonNull ArrayList<String> playerList, @Nullable Predicate<Entity> targetPredicate) {
+        double closestDistance = -1.0F;
+        PlayerEntity closestPlayer = null;
+
+        for(String uuid : playerList) {
+            PlayerEntity candidate = world.getPlayerByUuid(UUID.fromString(uuid));
+            if (candidate != null && (targetPredicate == null || targetPredicate.test(candidate))) {
+                double distance = candidate.squaredDistanceTo(x, y, z);
+                if ((!(maxDistance >= (double)0.0F) || !(distance >= maxDistance * maxDistance)) && (closestDistance == (double)-1.0F || distance < closestDistance)) {
+                    closestDistance = distance;
+                    closestPlayer = candidate;
+                }
+            }
+        }
+
+        return closestPlayer;
     }
 }
