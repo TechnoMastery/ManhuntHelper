@@ -21,7 +21,7 @@ import java.util.List;
 public class TeamMsgMixin {
 
     @Inject(
-            method = "execute",
+            method = "execute(Lnet/minecraft/server/command/ServerCommandSource;Lnet/minecraft/entity/Entity;Lnet/minecraft/scoreboard/Team;Ljava/util/List;Lnet/minecraft/network/message/SignedMessage;)V",
             at = @At("HEAD"),
             cancellable = true
     )
