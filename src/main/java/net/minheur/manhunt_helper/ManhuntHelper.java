@@ -456,7 +456,7 @@ public class ManhuntHelper implements ModInitializer {
 
     }
 
-    private static boolean isAdmin(@NonNull ServerCommandSource source, @NonNull ServerPlayerEntity player) {
+    public static boolean isAdmin(@NonNull ServerCommandSource source, @NonNull ServerPlayerEntity player) {
         return source.getServer().getPlayerManager()
                 .isOperator(player.getPlayerConfigEntry());
     }
