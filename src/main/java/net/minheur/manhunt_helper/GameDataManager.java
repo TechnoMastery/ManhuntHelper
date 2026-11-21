@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class GameDataManager {
-    private static final Gson gson = new Gson();
+    private static final Gson gson = ManhuntHelper.GSON;
     private static Path file;
 
     public static Data data;
