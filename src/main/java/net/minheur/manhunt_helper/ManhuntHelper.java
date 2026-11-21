@@ -20,6 +20,7 @@ import net.minecraft.network.message.SignedMessage;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -192,8 +193,7 @@ public class ManhuntHelper implements ModInitializer {
                                         return true;
                                     })
                                     .then(literal("killGame").executes(context -> {
-                                        ManhuntModAccessor.setResetReqAt(System.currentTimeMillis());
-                                        ManhuntModAccessor.reset(context.getSource());
+                                        closeGame(context);
                                         return 1;
                                     }))
                                     .then(literal("addHost")
@@ -411,8 +411,7 @@ public class ManhuntHelper implements ModInitializer {
                                             context.getSource().sendError(Text.literal("You need to finish the game before deleting and resetting the server."));
                                             return 0;
                                         }
-                                        ManhuntModAccessor.setResetReqAt(System.currentTimeMillis());
-                                        ManhuntModAccessor.reset(context.getSource());
+                                        closeGame(context);
                                         return 0;
                                     }))
                                     .then(literal("cancel").executes(context -> {
@@ -466,6 +465,15 @@ public class ManhuntHelper implements ModInitializer {
             player.sendMessage(message, false);
         });
 
+    }
+
+    public static void closeGame(@NonNull CommandContext<ServerCommandSource> context) {
+        // kick all players
+        PlayerManager playerManager = context.getSource().getServer().getPlayerManager();
+        playerManager.getPlayerList().forEach(player -> player.networkHandler.disconnect(Text.literal("La partie est terminée.")));
+        // actual reset + close
+        ManhuntModAccessor.setResetReqAt(System.currentTimeMillis());
+        ManhuntModAccessor.reset(context.getSource());
     }
 
     public static boolean isAdmin(@NonNull ServerPlayerEntity player) {
