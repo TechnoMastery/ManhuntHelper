@@ -18,7 +18,7 @@ public class GameDataManager {
     public static Data data;
 
     public static void resetData() {
-        // todo
+        data = DefaultDataManager.getDefaultData();
     }
 
     public static void setup() {
