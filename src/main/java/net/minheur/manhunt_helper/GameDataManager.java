@@ -63,6 +63,9 @@ public class GameDataManager {
         public int runnerLeft = 0;
 
         public boolean allowChooseTeam = true;
+        public DirectMessageMode directMessageMode = DirectMessageMode.TEAM;
+        public DirectMessageMode spectatorMessageMode = DirectMessageMode.TEAM;
+
         public TeamChatMode teamChatMode = TeamChatMode.ALLOWED;
         public List<UUID> teamChatEnabledPlayers = new ArrayList<>();
     }
@@ -80,6 +83,11 @@ public class GameDataManager {
         @SerializedName("forbidden") FORBIDDEN,
         @SerializedName("allowed") ALLOWED,
         @SerializedName("forced") FORCED
+    }
+    public enum DirectMessageMode {
+        @SerializedName("forbidden") FORBIDDEN,
+        @SerializedName("team") TEAM,
+        @SerializedName("everyone") EVERYONE
     }
 
 }
