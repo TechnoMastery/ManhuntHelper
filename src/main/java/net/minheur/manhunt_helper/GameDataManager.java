@@ -1,10 +1,8 @@
 package net.minheur.manhunt_helper;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
-import org.jspecify.annotations.Nullable;
+import com.google.gson.annotations.SerializedName;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,27 +12,13 @@ import java.util.List;
 import java.util.UUID;
 
 public class GameDataManager {
-    private static final Gson gson = new Gson();
+    private static final Gson gson = ManhuntHelper.GSON;
     private static Path file;
 
-    public static boolean startCountdown = true;
-    public static int timerTicks = 2400;
-    public static Phase phase = Phase.WAITING;
-    public static int runnerLeft = 0;
-
-    public static boolean allowChooseTeam = true;
-    public static TeamChatMode teamChatMode = TeamChatMode.ALLOWED;
-    // only if ALLOWED is selected
-    public static List<UUID> teamChatEnabledPlayers = new ArrayList<>();
+    public static Data data;
 
     public static void resetData() {
-        startCountdown = true;
-        timerTicks = 2400;
-        phase = Phase.WAITING;
-        runnerLeft = 0;
-        allowChooseTeam = true;
-        teamChatMode = TeamChatMode.ALLOWED;
-        teamChatEnabledPlayers = new ArrayList<>();
+        data = DefaultDataManager.getDefaultData();
     }
 
     public static void setup() {
@@ -56,7 +40,7 @@ public class GameDataManager {
             throw new RuntimeException("Failed to read current config file", e);
         }
 
-        loadFromJson(content);
+        data = gson.fromJson(content, Data.class);
     }
 
     public static void save() {
@@ -68,64 +52,34 @@ public class GameDataManager {
         }
     }
 
-    public static String getSavedAsJson() {
-        JsonObject o = new JsonObject();
-        o.addProperty("tmrTick", timerTicks);
-        o.addProperty("phase", phase.coded);
-        o.addProperty("runnerLeft", runnerLeft);
-        o.addProperty("allowChooseTeam", allowChooseTeam);
-        o.addProperty("teamChatMode", teamChatMode.coded);
-        o.add("teamChatPlayers", gson.toJsonTree(teamChatEnabledPlayers));
-        return o.toString();
+    public static @NonNull String getSavedAsJson() {
+        return gson.toJson(data);
     }
-    public static void loadFromJson(String json) {
-        JsonObject o = JsonParser.parseString(json).getAsJsonObject();
-        timerTicks = o.get("tmrTick").getAsInt();
-        phase = Phase.getFromCoded(o.get("phase").getAsString());
-        runnerLeft = o.get("runnerLeft").getAsInt();
-        allowChooseTeam = o.get("allowChooseTeam").getAsBoolean();
-        teamChatMode = TeamChatMode.getFromCoded(o.get("teamChatMode").getAsString());
-        teamChatEnabledPlayers = gson.fromJson(o.get("teamChatPlayers").getAsJsonArray(),
-                new TypeToken<List<UUID>>() {}.getType());
+
+    public static class Data {
+        public boolean startCountdown = true;
+        public int timerTicks = 2400;
+        public Phase phase = Phase.WAITING;
+        public int runnerLeft = 0;
+
+        public boolean allowChooseTeam = true;
+        public TeamChatMode teamChatMode = TeamChatMode.ALLOWED;
+        public List<UUID> teamChatEnabledPlayers = new ArrayList<>();
     }
 
     public enum Phase {
-        WAITING("waiting"),
-        CONFIG("config"),
-        PREPARE("prep"),
-        INITIAL_COUNTDOWN("countdown"),
-        HEAD_START("head_start"),
-        PLAYING("playing"),
-        FINISHED("finished");
-
-        public final String coded;
-
-        public static @Nullable Phase getFromCoded(String coded) {
-            for (Phase p : Phase.values())
-                if (p.coded.equals(coded)) return p;
-            return null;
-        }
-
-        Phase(String coded) {
-            this.coded = coded;
-        }
+        @SerializedName("waiting") WAITING,
+        @SerializedName("config") CONFIG,
+        @SerializedName("prep") PREPARE,
+        @SerializedName("countdown") INITIAL_COUNTDOWN,
+        @SerializedName("head_start") HEAD_START,
+        @SerializedName("playing") PLAYING,
+        @SerializedName("finished") FINISHED
     }
     public enum TeamChatMode {
-        FORBIDDEN("forbidden"),
-        ALLOWED("allowed"),
-        FORCED("forced");
-
-        public final String coded;
-
-        public static @Nullable TeamChatMode getFromCoded(String coded) {
-            for (TeamChatMode m : TeamChatMode.values())
-                if (m.coded.equals(coded)) return m;
-            return null;
-        }
-
-        TeamChatMode(String coded) {
-            this.coded = coded;
-        }
+        @SerializedName("forbidden") FORBIDDEN,
+        @SerializedName("allowed") ALLOWED,
+        @SerializedName("forced") FORCED
     }
 
 }

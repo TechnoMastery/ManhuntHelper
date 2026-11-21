@@ -27,13 +27,13 @@ public class AllowedHostManager {
                     data = GSON.fromJson(reader, HostData.class);
                 }
             }
-
+        } catch (IOException e) {
+            throw new RuntimeException("Impossible to load hosts.json", e);
+        } finally {
             if (data == null) {
                 data = new HostData();
                 save();
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Impossible to load hosts.json", e);
         }
     }
 

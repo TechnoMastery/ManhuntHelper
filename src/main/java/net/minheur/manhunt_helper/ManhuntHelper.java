@@ -56,7 +56,7 @@ public class ManhuntHelper implements ModInitializer {
             worldPath = server.getSavePath(WorldSavePath.ROOT);
             GameDataManager.setup();
 
-            if (GameDataManager.phase == GameDataManager.Phase.WAITING) {
+            if (GameDataManager.data.phase == GameDataManager.Phase.WAITING) {
                 GameRules rules = world.getGameRules();
                 rules.setValue(GameRules.DO_MOB_SPAWNING, false, server);
                 rules.setValue(GameRules.SPAWN_MONSTERS, false, server);
@@ -72,7 +72,7 @@ public class ManhuntHelper implements ModInitializer {
                             .then(literal("teamChat")
                                     .executes(context -> {
                                         // phase check
-                                        GameDataManager.Phase phase = GameDataManager.phase;
+                                        GameDataManager.Phase phase = GameDataManager.data.phase;
                                         if (phase == GameDataManager.Phase.WAITING
                                                 || phase == GameDataManager.Phase.CONFIG
                                                 || phase == GameDataManager.Phase.FINISHED
@@ -81,7 +81,7 @@ public class ManhuntHelper implements ModInitializer {
                                             return 0;
                                         }
                                         // some data...
-                                        GameDataManager.TeamChatMode chatMode = GameDataManager.teamChatMode;
+                                        GameDataManager.TeamChatMode chatMode = GameDataManager.data.teamChatMode;
                                         // check other mods
                                         if (chatMode == GameDataManager.TeamChatMode.FORBIDDEN)
                                             context.getSource().sendMessage(Text.literal("Team chat in DISABLED by the host."));
@@ -91,14 +91,14 @@ public class ManhuntHelper implements ModInitializer {
                                             if (context.getSource().getEntity() instanceof ServerPlayerEntity player) {
                                                 if (isAdmin(player)) { // ADMIN bypass
                                                     context.getSource().sendMessage(Text.literal("You are ADMIN and can still toggle your chat to global."));
-                                                    if (GameDataManager.teamChatEnabledPlayers.contains(player.getUuid()))
+                                                    if (GameDataManager.data.teamChatEnabledPlayers.contains(player.getUuid()))
                                                         context.getSource().sendMessage(Text.literal("You have Team Chat enabled for this game."));
                                                     else
                                                         context.getSource().sendMessage(Text.literal("You have Team Chat disabled for this game."));
                                                 }
                                                 if (AllowedHostManager.isHost(player.getUuid())) { // player is HOST
                                                     context.getSource().sendMessage(Text.literal("You are the HOST and can still toggle your chat to global."));
-                                                    if (GameDataManager.teamChatEnabledPlayers.contains(player.getUuid()))
+                                                    if (GameDataManager.data.teamChatEnabledPlayers.contains(player.getUuid()))
                                                         context.getSource().sendMessage(Text.literal("You have Team Chat enabled for this game."));
                                                     else
                                                         context.getSource().sendMessage(Text.literal("You have Team Chat disabled for this game."));
@@ -109,7 +109,7 @@ public class ManhuntHelper implements ModInitializer {
                                             context.getSource().sendMessage(Text.literal("Team chat in ALLOWED by the host."));
                                             if (!(context.getSource().getEntity() instanceof ServerPlayerEntity player)) return 1;
                                             UUID uuid = player.getUuid();
-                                            if (GameDataManager.teamChatEnabledPlayers.contains(uuid))
+                                            if (GameDataManager.data.teamChatEnabledPlayers.contains(uuid))
                                                 context.getSource().sendMessage(Text.literal("You have Team Chat enabled for this game."));
                                             else context.getSource().sendMessage(Text.literal("You have Team Chat disabled for this game."));
                                         }
@@ -120,22 +120,22 @@ public class ManhuntHelper implements ModInitializer {
                                                 if (!(context.getSource().getEntity() instanceof ServerPlayerEntity player)) return 0; // only players
                                                 if (
                                                         !(isAdmin(player) || AllowedHostManager.isHost(player.getUuid())) // is not admin or host
-                                                        && GameDataManager.teamChatMode != GameDataManager.TeamChatMode.ALLOWED // and team chat is not choosable
+                                                        && GameDataManager.data.teamChatMode != GameDataManager.TeamChatMode.ALLOWED // and team chat is not choosable
                                                 ) { // we return an error
-                                                    context.getSource().sendError(Text.literal("You cannot change your team chat mode : it is in " + GameDataManager.teamChatMode.coded));
+                                                    context.getSource().sendError(Text.literal("You cannot change your team chat mode : it is in " + GameDataManager.data.teamChatMode.name().toLowerCase()));
                                                     return 0;
                                                 }
                                                 // else we allow changement
                                                 boolean activated = BoolArgumentType.getBool(context, "enabled");
-                                                if (activated) GameDataManager.teamChatEnabledPlayers.add(player.getUuid());
-                                                else GameDataManager.teamChatEnabledPlayers.remove(player.getUuid());
+                                                if (activated) GameDataManager.data.teamChatEnabledPlayers.add(player.getUuid());
+                                                else GameDataManager.data.teamChatEnabledPlayers.remove(player.getUuid());
                                                 context.getSource().sendMessage(Text.literal("You team chat mode has been changed to " + activated));
                                                 return 1;
                                             })
                                     )
                             )
                             .then(literal("unstuck").executes(context -> {
-                                if (GameDataManager.phase != GameDataManager.Phase.WAITING) {
+                                if (GameDataManager.data.phase != GameDataManager.Phase.WAITING) {
                                     context.getSource().sendError(Text.literal("Please be in WAITING phase before running this command."));
                                     return 0;
                                 }
@@ -246,7 +246,7 @@ public class ManhuntHelper implements ModInitializer {
                                     })
                                     .then(literal("claim")
                                             .executes(context -> {
-                                                if (GameDataManager.phase != GameDataManager.Phase.WAITING) {
+                                                if (GameDataManager.data.phase != GameDataManager.Phase.WAITING) {
                                                     context.getSource().sendError(Text.literal("Game has already been claimed."));
                                                     return 0;
                                                 }
@@ -260,7 +260,7 @@ public class ManhuntHelper implements ModInitializer {
                                                     .then(literal("allow")
                                                             .executes(context -> {
                                                                 if (!isConfigStage(context)) return 0;
-                                                                GameDataManager.teamChatMode = GameDataManager.TeamChatMode.ALLOWED;
+                                                                GameDataManager.data.teamChatMode = GameDataManager.TeamChatMode.ALLOWED;
                                                                 context.getSource().sendFeedback(() -> Text.literal("Set team chat mode to allowed"), true);
                                                                 return 1;
                                                             })
@@ -268,7 +268,7 @@ public class ManhuntHelper implements ModInitializer {
                                                     .then(literal("force")
                                                             .executes(context -> {
                                                                 if (!isConfigStage(context)) return 0;
-                                                                GameDataManager.teamChatMode = GameDataManager.TeamChatMode.FORCED;
+                                                                GameDataManager.data.teamChatMode = GameDataManager.TeamChatMode.FORCED;
                                                                 context.getSource().sendFeedback(() -> Text.literal("Set team chat mode to forced"), true);
                                                                 return 1;
                                                             })
@@ -276,14 +276,14 @@ public class ManhuntHelper implements ModInitializer {
                                                     .then(literal("forbid")
                                                             .executes(context -> {
                                                                 if (!isConfigStage(context)) return 0;
-                                                                GameDataManager.teamChatMode = GameDataManager.TeamChatMode.FORBIDDEN;
+                                                                GameDataManager.data.teamChatMode = GameDataManager.TeamChatMode.FORBIDDEN;
                                                                 context.getSource().sendFeedback(() -> Text.literal("Set team chat mode to forbidden"), true);
                                                                 return 1;
                                                             })
                                                     )
                                                     .executes(context -> {
                                                         if (!isConfigStage(context)) return 0;
-                                                        String mode = GameDataManager.teamChatMode.coded;
+                                                        String mode = GameDataManager.data.teamChatMode.name().toLowerCase();
                                                         context.getSource().sendFeedback(() -> Text.literal("Team chat mode is set to " + mode), true);
                                                         return 1;
                                                     })
@@ -292,8 +292,8 @@ public class ManhuntHelper implements ModInitializer {
                                                     .then(argument("allows", BoolArgumentType.bool())
                                                             .executes(context -> {
                                                                 if (!isConfigStage(context)) return 0;
-                                                                GameDataManager.allowChooseTeam = BoolArgumentType.getBool(context, "allows");
-                                                                context.getSource().sendFeedback(() -> Text.literal("Set team choice to " + GameDataManager.allowChooseTeam), true);
+                                                                GameDataManager.data.allowChooseTeam = BoolArgumentType.getBool(context, "allows");
+                                                                context.getSource().sendFeedback(() -> Text.literal("Set team choice to " + GameDataManager.data.allowChooseTeam), true);
                                                                 return 1;
                                                             })
                                                     )
@@ -301,14 +301,14 @@ public class ManhuntHelper implements ModInitializer {
                                             .then(literal("headstart")
                                                     .executes(context -> {
                                                         if (!isConfigStage(context)) return 0;
-                                                        int headStartSeconds = GameDataManager.timerTicks / 20;
+                                                        int headStartSeconds = GameDataManager.data.timerTicks / 20;
                                                         context.getSource().sendFeedback(() -> Text.literal("Current configured headstart: " + headStartSeconds), false);
                                                         return 1;
                                                     })
                                                     .then(argument("seconds", IntegerArgumentType.integer())
                                                             .executes(context -> {
                                                                 if (!isConfigStage(context)) return 0;
-                                                                GameDataManager.timerTicks = IntegerArgumentType.getInteger(context, "seconds") *20;
+                                                                GameDataManager.data.timerTicks = IntegerArgumentType.getInteger(context, "seconds") *20;
                                                                 return 1;
                                                             })
                                                     )
@@ -317,8 +317,8 @@ public class ManhuntHelper implements ModInitializer {
                                                     .then(argument("enabled", BoolArgumentType.bool())
                                                             .executes(context -> {
                                                                 if (!isConfigStage(context)) return 0;
-                                                                GameDataManager.startCountdown = BoolArgumentType.getBool(context, "enabled");
-                                                                context.getSource().sendFeedback(() -> Text.literal("Set start time to " + GameDataManager.startCountdown), true);
+                                                                GameDataManager.data.startCountdown = BoolArgumentType.getBool(context, "enabled");
+                                                                context.getSource().sendFeedback(() -> Text.literal("Set start time to " + GameDataManager.data.startCountdown), true);
                                                                 return 1;
                                                             })
                                                     )
@@ -393,7 +393,7 @@ public class ManhuntHelper implements ModInitializer {
                                             context.getSource().sendError(Text.literal("You are not this game's host!"));
                                             return 0;
                                         }
-                                        if (GameDataManager.phase != GameDataManager.Phase.PREPARE) {
+                                        if (GameDataManager.data.phase != GameDataManager.Phase.PREPARE) {
                                             context.getSource().sendError(Text.literal("Game is not prepared."));
                                             return 0;
                                         }
@@ -407,7 +407,7 @@ public class ManhuntHelper implements ModInitializer {
                                             context.getSource().sendError(Text.literal("You are not this game's host!"));
                                             return 0;
                                         }
-                                        if (GameDataManager.phase != GameDataManager.Phase.FINISHED) {
+                                        if (GameDataManager.data.phase != GameDataManager.Phase.FINISHED) {
                                             context.getSource().sendError(Text.literal("You need to finish the game before deleting and resetting the server."));
                                             return 0;
                                         }
@@ -421,7 +421,7 @@ public class ManhuntHelper implements ModInitializer {
                                             context.getSource().sendError(Text.literal("You are not this game's host!"));
                                             return 0;
                                         }
-                                        if (!(GameDataManager.phase == GameDataManager.Phase.CONFIG || GameDataManager.phase == GameDataManager.Phase.PREPARE)) {
+                                        if (!(GameDataManager.data.phase == GameDataManager.Phase.CONFIG || GameDataManager.data.phase == GameDataManager.Phase.PREPARE)) {
                                             context.getSource().sendError(Text.literal("You can't cancel now."));
                                             return 0;
                                         }
@@ -446,17 +446,17 @@ public class ManhuntHelper implements ModInitializer {
 
             Text message;
             // waiting and can host
-            if (GameDataManager.phase == GameDataManager.Phase.WAITING && AllowedHostManager.isHost(player.getUuid()))
+            if (GameDataManager.data.phase == GameDataManager.Phase.WAITING && AllowedHostManager.isHost(player.getUuid()))
                 message = Text.empty().append(Text.literal("Hello host ").formatted(Formatting.GREEN)).append(Text.literal(player.getName().getString()).formatted(Formatting.GREEN, Formatting.BOLD))
                                         .append(Text.literal(" ! (").formatted(Formatting.GREEN)).append(Text.literal("/mh host claim").formatted(Formatting.GOLD))
                                         .append(Text.literal(")").formatted(Formatting.GREEN));
             // waiting and can't host / config / preparing
-            else if (GameDataManager.phase == GameDataManager.Phase.WAITING || GameDataManager.phase == GameDataManager.Phase.CONFIG || GameDataManager.phase == GameDataManager.Phase.PREPARE)
+            else if (GameDataManager.data.phase == GameDataManager.Phase.WAITING || GameDataManager.data.phase == GameDataManager.Phase.CONFIG || GameDataManager.data.phase == GameDataManager.Phase.PREPARE)
                 message = Text.empty().append(Text.literal("Hello ").formatted(Formatting.GREEN)).append(Text.literal(player.getName().getString()).formatted(Formatting.GREEN, Formatting.BOLD))
                         .append(Text.literal(" ! This game is waiting. Your host is ").formatted(Formatting.GREEN))
                         .append(Text.literal(host == null ? "unknown" : host.getName().getString()).formatted(Formatting.GREEN, Formatting.BOLD));
             // game finished
-            else if (GameDataManager.phase == GameDataManager.Phase.FINISHED)
+            else if (GameDataManager.data.phase == GameDataManager.Phase.FINISHED)
                 message = Text.literal("Game is finished!").formatted(Formatting.GREEN, Formatting.BOLD);
             // else game is running
             else message = Text.empty().append(Text.literal("Hello ").formatted(Formatting.GREEN)).append(Text.literal(player.getName().getString()).formatted(Formatting.GREEN, Formatting.BOLD))
@@ -493,11 +493,11 @@ public class ManhuntHelper implements ModInitializer {
     private static boolean isTeamChoiceAllowed(CommandContext<ServerCommandSource> context) {
         if (!(context.getSource().getEntity() instanceof ServerPlayerEntity player))
             return false;
-        if (GameDataManager.phase != GameDataManager.Phase.CONFIG) {
+        if (GameDataManager.data.phase != GameDataManager.Phase.CONFIG) {
             context.getSource().sendError(Text.literal("Need to be in config state to choose your team."));
             return false;
         }
-        if (!GameDataManager.allowChooseTeam && !player.getCommandTags().contains("host")) {
+        if (!GameDataManager.data.allowChooseTeam && !player.getCommandTags().contains("host")) {
             context.getSource().sendError(Text.literal("This game's host disabled team choice."));
             return false;
         }
@@ -510,7 +510,7 @@ public class ManhuntHelper implements ModInitializer {
             context.getSource().sendError(Text.literal("You are not this game's host!"));
             return false;
         }
-        if (GameDataManager.phase != GameDataManager.Phase.CONFIG) {
+        if (GameDataManager.data.phase != GameDataManager.Phase.CONFIG) {
             context.getSource().sendError(Text.literal("Not in config stage."));
             return false;
         }
