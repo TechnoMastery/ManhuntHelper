@@ -485,6 +485,13 @@ public class GameManager {
                     player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 70, 20));
                     player.networkHandler.sendPacket(new SubtitleS2CPacket(instantRelease ? hunterAltSubtitle : hunterSubtitle));
                     player.networkHandler.sendPacket(new TitleS2CPacket(hunterTitle));
+
+                    if (instantRelease) { // if instant release, we don't keep hunters stuck
+                        player.changeGameMode(GameMode.SURVIVAL);
+                        player.getCommandTags().remove("stuck");
+                        player.addStatusEffect(new StatusEffectInstance(StatusEffects.GLOWING, 100));
+                        player.giveItemStack(ManhuntModAccessor.mkCompass());
+                    }
                 }
             }
 
