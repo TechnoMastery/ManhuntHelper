@@ -17,6 +17,7 @@ import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -82,7 +83,7 @@ public class ManhuntHelper implements ModInitializer {
                                             context.getSource().sendMessage(Text.literal("Team chat in FORCED by the host."));
                                             // if player we may have more to say
                                             if (context.getSource().getEntity() instanceof ServerPlayerEntity player) {
-                                                if (isAdmin(context.getSource(), player)) { // ADMIN bypass
+                                                if (isAdmin(player)) { // ADMIN bypass
                                                     context.getSource().sendMessage(Text.literal("You are ADMIN and can still toggle your chat to global."));
                                                     if (GameDataManager.teamChatEnabledPlayers.contains(player.getUuid()))
                                                         context.getSource().sendMessage(Text.literal("You have Team Chat enabled for this game."));
@@ -112,7 +113,7 @@ public class ManhuntHelper implements ModInitializer {
                                             .executes(context -> {
                                                 if (!(context.getSource().getEntity() instanceof ServerPlayerEntity player)) return 0; // only players
                                                 if (
-                                                        !(isAdmin(context.getSource(), player) || AllowedHostManager.isHost(player.getUuid())) // is not admin or host
+                                                        !(isAdmin(player) || AllowedHostManager.isHost(player.getUuid())) // is not admin or host
                                                         && GameDataManager.teamChatMode != GameDataManager.TeamChatMode.ALLOWED // and team chat is not choosable
                                                 ) { // we return an error
                                                     context.getSource().sendError(Text.literal("You cannot change your team chat mode : it is in " + GameDataManager.teamChatMode.coded));
@@ -181,7 +182,7 @@ public class ManhuntHelper implements ModInitializer {
                             .then(literal("admin")
                                     .requires(source -> { // requires op
                                         if (source.getEntity() instanceof ServerPlayerEntity player)
-                                            return isAdmin(source, player);
+                                            return isAdmin(player);
                                         return true;
                                     })
                                     .then(literal("addHost")
@@ -456,9 +457,10 @@ public class ManhuntHelper implements ModInitializer {
 
     }
 
-    public static boolean isAdmin(@NonNull ServerCommandSource source, @NonNull ServerPlayerEntity player) {
-        return source.getServer().getPlayerManager()
-                .isOperator(player.getPlayerConfigEntry());
+    public static boolean isAdmin(@NonNull ServerPlayerEntity player) {
+        MinecraftServer server = player.getEntityWorld().getServer();
+        if (server == null) return false;
+        return server.getPlayerManager().isOperator(player.getPlayerConfigEntry());
     }
 
     public static Path getConfigDir() {

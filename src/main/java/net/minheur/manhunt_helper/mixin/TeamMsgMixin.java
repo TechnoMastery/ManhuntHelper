@@ -48,7 +48,7 @@ public class TeamMsgMixin {
             return;
         }
 
-        if (!(ManhuntHelper.isAdmin(source, player) || AllowedHostManager.isHost(player.getUuid()))) // player not host nor admin
+        if (!(ManhuntHelper.isAdmin(player) || AllowedHostManager.isHost(player.getUuid()))) // player not host nor admin
             if (GameDataManager.teamChatMode == GameDataManager.TeamChatMode.FORBIDDEN) { // and cannot team chat
                 source.sendError(Text.literal("Team chat is FORBIDDEN for this game."));
                 ci.cancel();
