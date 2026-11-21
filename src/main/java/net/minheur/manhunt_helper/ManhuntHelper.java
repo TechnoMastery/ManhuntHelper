@@ -187,6 +187,11 @@ public class ManhuntHelper implements ModInitializer {
                                             return isAdmin(player);
                                         return true;
                                     })
+                                    .then(literal("killGame").executes(context -> {
+                                        ManhuntModAccessor.setResetReqAt(System.currentTimeMillis());
+                                        ManhuntModAccessor.reset(context.getSource());
+                                        return 1;
+                                    }))
                                     .then(literal("addHost")
                                             .then(argument("player", EntityArgumentType.player())
                                                     .executes(context -> {
@@ -409,7 +414,7 @@ public class ManhuntHelper implements ModInitializer {
                                     .then(literal("cancel").executes(context -> {
                                         assert context.getSource().getEntity() != null;
                                         if (!context.getSource().getEntity().getCommandTags().contains("host")) {
-                                            context.getSource().sendError(Text.literal("You are not this game's hsot!"));
+                                            context.getSource().sendError(Text.literal("You are not this game's host!"));
                                             return 0;
                                         }
                                         if (!(GameDataManager.phase == GameDataManager.Phase.CONFIG || GameDataManager.phase == GameDataManager.Phase.PREPARE)) {
