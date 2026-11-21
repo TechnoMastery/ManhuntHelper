@@ -3,7 +3,6 @@ package net.minheur.manhunt_helper;
 import com.alphaduck.manhunt.Runners;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.MarkerEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -26,6 +25,7 @@ import net.minecraft.world.rule.GameRules;
 import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 public class GameManager {
 
@@ -180,7 +180,8 @@ public class GameManager {
         server.getOverworld().getWorldBorder().setSize(10);
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            player.requestTeleport(markerPos.getX(), markerPos.getY(), markerPos.getZ());
+            player.teleport(server.getOverworld(), markerPos.getX(), markerPos.getY(), markerPos.getZ(),
+                    Set.of(), player.getYaw(), player.getPitch(), false);
             player.changeGameMode(GameMode.ADVENTURE);
         }
     }
