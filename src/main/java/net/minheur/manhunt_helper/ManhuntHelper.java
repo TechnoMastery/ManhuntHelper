@@ -156,18 +156,8 @@ public class ManhuntHelper implements ModInitializer {
                                                 if (!isTeamChoiceAllowed(context)) return 0;
                                                 ServerPlayerEntity player = context.getSource().getPlayer();
                                                 if (player == null) return 0;
-                                                Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
                                                 Teams team = context.getArgument("team", Teams.class);
-                                                switch (team) {
-                                                    case RUNNER -> scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("runner"));
-                                                    case HUNTER -> scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("hunter"));
-                                                    default -> {
-                                                        Team actualTeam = scoreboard.getScoreHolderTeam(player.getName().getString());
-                                                        if (actualTeam != null)
-                                                            scoreboard.removeScoreHolderFromTeam(player.getName().getString(), actualTeam);
-                                                    }
-                                                }
-
+                                                applyTeamChangement(player, team);
                                                 context.getSource().sendFeedback(() -> Text.empty()
                                                         .append(Text.literal("You successfully joined ").formatted(Formatting.DARK_GREEN))
                                                         .append(Text.literal(team.asString()).formatted(team.getColor(), Formatting.BOLD))
@@ -331,17 +321,8 @@ public class ManhuntHelper implements ModInitializer {
                                                             .executes(context -> {
                                                                 if (!isConfigStage(context)) return 0;
                                                                 ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
-                                                                Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
                                                                 Teams team = context.getArgument("team", Teams.class);
-                                                                switch (team) {
-                                                                    case RUNNER -> scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("runner"));
-                                                                    case HUNTER -> scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("hunter"));
-                                                                    default -> {
-                                                                        Team currentTeam = scoreboard.getScoreHolderTeam(player.getName().getString());
-                                                                        if (currentTeam != null)
-                                                                            scoreboard.removeScoreHolderFromTeam(player.getName().getString(), currentTeam);
-                                                                    }
-                                                                }
+                                                                applyTeamChangement(player, team);
 
                                                                 context.getSource().sendFeedback(() -> Text.empty()
                                                                         .append(Text.literal("Player ").formatted(Formatting.DARK_GREEN))
@@ -441,6 +422,19 @@ public class ManhuntHelper implements ModInitializer {
             player.sendMessage(message, false);
         });
 
+    }
+
+    private static void applyTeamChangement(@NonNull ServerPlayerEntity player, @NonNull Teams team) {
+        Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
+        switch (team) {
+            case RUNNER -> scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("runner"));
+            case HUNTER -> scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("hunter"));
+            default -> {
+                Team actualTeam = scoreboard.getScoreHolderTeam(player.getName().getString());
+                if (actualTeam != null)
+                    scoreboard.removeScoreHolderFromTeam(player.getName().getString(), actualTeam);
+            }
+        }
     }
 
     @Contract(value = "_, _ -> new", pure = true)
