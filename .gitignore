@@ -57,3 +57,5 @@ config/
 
 # gradle generated
 !gradle/wrapper/gradle-wrapper.jar
+# deps
+!libs/*.jar
