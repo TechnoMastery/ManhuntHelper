@@ -111,7 +111,7 @@ public class ManhuntHelper implements ModInitializer {
                                             }
                                         }
                                         else {
-                                            context.getSource().sendMessage(Text.literal("Team chat in ALLOWED by the host."));
+                                            context.getSource().sendMessage(Text.literal("Team chat is ALLOWED by the host."));
                                             if (!(context.getSource().getEntity() instanceof ServerPlayerEntity player)) return 1;
                                             UUID uuid = player.getUuid();
                                             if (GameDataManager.data.teamChatEnabledPlayers.contains(uuid))
