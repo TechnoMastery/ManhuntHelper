@@ -336,7 +336,9 @@ public class ManhuntHelper implements ModInitializer {
                                                     .then(argument("seconds", IntegerArgumentType.integer())
                                                             .executes(context -> {
                                                                 if (!isConfigStage(context)) return 0;
-                                                                GameDataManager.data.timerTicks = IntegerArgumentType.getInteger(context, "seconds") *20;
+                                                                int newHeadStartSeconds = IntegerArgumentType.getInteger(context, "seconds");
+                                                                GameDataManager.data.timerTicks = newHeadStartSeconds *20;
+                                                                context.getSource().sendFeedback(() -> Text.literal("New configured headstart: " + newHeadStartSeconds), true);
                                                                 return 1;
                                                             })
                                                     )
