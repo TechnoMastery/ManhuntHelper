@@ -81,10 +81,24 @@ public class GameDataManager {
         @SerializedName("playing") PLAYING,
         @SerializedName("finished") FINISHED
     }
-    public enum TeamChatMode {
-        @SerializedName("forbidden") FORBIDDEN,
-        @SerializedName("allowed") ALLOWED,
-        @SerializedName("forced") FORCED
+    public enum TeamChatMode implements StringIdentifiable {
+        @SerializedName("forbidden") FORBIDDEN("forbidden"),
+        @SerializedName("allowed") ALLOWED("allowed"),
+        @SerializedName("forced") FORCED("forced");
+
+        private final String key;
+
+        public static final Codec<TeamChatMode> CODEC =
+                StringIdentifiable.createCodec(TeamChatMode::values);
+
+        TeamChatMode(String key) {
+            this.key = key;
+        }
+
+        @Override
+        public String asString() {
+            return key;
+        }
     }
     public enum DirectMessageMode implements StringIdentifiable {
         @SerializedName("forbidden") FORBIDDEN("forbidden"),
