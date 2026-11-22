@@ -151,44 +151,30 @@ public class ManhuntHelper implements ModInitializer {
                                 return 1;
                             }))
                             .then(literal("team")
-                                    .then(literal("runner").executes(context -> {
-                                        if (!isTeamChoiceAllowed(context)) return 0;
-                                        ServerPlayerEntity player = context.getSource().getPlayer();
-                                        if (player == null) return 0;
-                                        Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
-                                        scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("runner"));
-                                        context.getSource().sendFeedback(() -> Text.empty()
-                                                .append(Text.literal("You successfully joined ").formatted(Formatting.DARK_GREEN))
-                                                .append(Text.literal("runner").formatted(Formatting.GREEN, Formatting.BOLD))
-                                                .append(Text.literal(" team !").formatted(Formatting.DARK_GREEN)), true);
-                                        return 1;
-                                    }))
-                                    .then(literal("hunter").executes(context -> {
-                                        if (!isTeamChoiceAllowed(context)) return 0;
-                                        ServerPlayerEntity player = context.getSource().getPlayer();
-                                        if (player == null) return 0;
-                                        Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
-                                        scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("hunter"));
-                                        context.getSource().sendFeedback(() -> Text.empty()
-                                                .append(Text.literal("You successfully joined ").formatted(Formatting.DARK_GREEN))
-                                                .append(Text.literal("hunter").formatted(Formatting.BLUE, Formatting.BOLD))
-                                                .append(Text.literal(" team !").formatted(Formatting.DARK_GREEN)), true);
-                                        return 1;
-                                    }))
-                                    .then(literal("spectator").executes(context -> {
-                                        if (!isTeamChoiceAllowed(context)) return 0;
-                                        ServerPlayerEntity player = context.getSource().getPlayer();
-                                        if (player == null) return 0;
-                                        Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
-                                        Team team = scoreboard.getScoreHolderTeam(player.getName().getString());
-                                        if (team != null)
-                                            scoreboard.removeScoreHolderFromTeam(player.getName().getString(), team);
-                                        context.getSource().sendFeedback(() -> Text.empty()
-                                                .append(Text.literal("You successfully became a ").formatted(Formatting.DARK_GREEN))
-                                                .append(Text.literal("spectator").formatted(Formatting.WHITE, Formatting.BOLD))
-                                                .append(Text.literal(" !").formatted(Formatting.DARK_GREEN)), true);
-                                        return 1;
-                                    }))
+                                    .then(argument("team", enumArgTypeOf(Teams.CODEC, Teams::values))
+                                            .executes(context -> {
+                                                if (!isTeamChoiceAllowed(context)) return 0;
+                                                ServerPlayerEntity player = context.getSource().getPlayer();
+                                                if (player == null) return 0;
+                                                Scoreboard scoreboard = player.getEntityWorld().getScoreboard();
+                                                Teams team = context.getArgument("team", Teams.class);
+                                                switch (team) {
+                                                    case RUNNER -> scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("runner"));
+                                                    case HUNTER -> scoreboard.addScoreHolderToTeam(player.getName().getString(), scoreboard.getTeam("hunter"));
+                                                    default -> {
+                                                        Team actualTeam = scoreboard.getScoreHolderTeam(player.getName().getString());
+                                                        if (actualTeam != null)
+                                                            scoreboard.removeScoreHolderFromTeam(player.getName().getString(), actualTeam);
+                                                    }
+                                                }
+
+                                                context.getSource().sendFeedback(() -> Text.empty()
+                                                        .append(Text.literal("You successfully joined ").formatted(Formatting.DARK_GREEN))
+                                                        .append(Text.literal(team.asString()).formatted(team.getColor(), Formatting.BOLD))
+                                                        .append(Text.literal(" team !").formatted(Formatting.DARK_GREEN)), true);
+                                                return 1;
+                                            })
+                                    )
                             )
                             .then(literal("admin")
                                     .requires(source -> { // requires op
