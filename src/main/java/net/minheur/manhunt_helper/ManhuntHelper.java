@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.serialization.Codec;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.EnumArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.message.SignedMessage;
@@ -26,11 +27,13 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.StringIdentifiable;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
 import net.minecraft.world.rule.GameRules;
 import net.minheur.manhunt_helper.mixin.ManhuntModAccessor;
 import net.minheur.manhunt_helper.mixin.TeamMsgAccessor;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
@@ -38,6 +41,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -256,6 +260,30 @@ public class ManhuntHelper implements ModInitializer {
                                             })
                                     )
                                     .then(literal("config")
+                                            .then(literal("directMessageMode")
+                                                    .then(literal("spectator")
+                                                            .then(argument("mode", enumArgTypeOf(GameDataManager.DirectMessageMode.CODEC, GameDataManager.DirectMessageMode::values))
+                                                                    .executes(context -> {
+                                                                        if (!isConfigStage(context)) return 0;
+                                                                        GameDataManager.DirectMessageMode messageMode = context.getArgument("mode", GameDataManager.DirectMessageMode.class);
+                                                                        GameDataManager.data.spectatorMessageMode = messageMode;
+                                                                        context.getSource().sendFeedback(() -> Text.literal("Set direct message mode to " + messageMode.asString() + " for spectators."), true);
+                                                                        return 1;
+                                                                    })
+                                                            )
+                                                    )
+                                                    .then(literal("players")
+                                                            .then(argument("mode", enumArgTypeOf(GameDataManager.DirectMessageMode.CODEC, GameDataManager.DirectMessageMode::values))
+                                                                    .executes(context -> {
+                                                                        if (!isConfigStage(context)) return 0;
+                                                                        GameDataManager.DirectMessageMode messageMode = context.getArgument("mode", GameDataManager.DirectMessageMode.class);
+                                                                        GameDataManager.data.directMessageMode = messageMode;
+                                                                        context.getSource().sendFeedback(() -> Text.literal("Set direct message mode to " + messageMode.asString() + " for players."), true);
+                                                                        return 1;
+                                                                    })
+                                                            )
+                                                    )
+                                            )
                                             .then(literal("teamChatMode")
                                                     .then(literal("allow")
                                                             .executes(context -> {
@@ -465,6 +493,11 @@ public class ManhuntHelper implements ModInitializer {
             player.sendMessage(message, false);
         });
 
+    }
+
+    @Contract(value = "_, _ -> new", pure = true)
+    public static <E extends Enum<E> & StringIdentifiable> @NonNull EnumArgumentType<E> enumArgTypeOf(Codec<E> codec, Supplier<E[]> values) {
+        return new EnumArgumentType<>(codec, values){};
     }
 
     public static void closeGame(@NonNull CommandContext<ServerCommandSource> context) {

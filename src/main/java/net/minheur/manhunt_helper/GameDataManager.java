@@ -2,6 +2,8 @@ package net.minheur.manhunt_helper;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import com.mojang.serialization.Codec;
+import net.minecraft.util.StringIdentifiable;
 import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
@@ -63,6 +65,9 @@ public class GameDataManager {
         public int runnerLeft = 0;
 
         public boolean allowChooseTeam = true;
+        public DirectMessageMode directMessageMode = DirectMessageMode.TEAM;
+        public DirectMessageMode spectatorMessageMode = DirectMessageMode.TEAM;
+
         public TeamChatMode teamChatMode = TeamChatMode.ALLOWED;
         public List<UUID> teamChatEnabledPlayers = new ArrayList<>();
     }
@@ -80,6 +85,25 @@ public class GameDataManager {
         @SerializedName("forbidden") FORBIDDEN,
         @SerializedName("allowed") ALLOWED,
         @SerializedName("forced") FORCED
+    }
+    public enum DirectMessageMode implements StringIdentifiable {
+        @SerializedName("forbidden") FORBIDDEN("forbidden"),
+        @SerializedName("team") TEAM("team"),
+        @SerializedName("everyone") EVERYONE("everyone");
+
+        private final String key;
+
+        public static final Codec<DirectMessageMode> CODEC =
+                StringIdentifiable.createCodec(DirectMessageMode::values);
+
+        DirectMessageMode(String key) {
+            this.key = key;
+        }
+
+        @Override
+        public String asString() {
+            return key;
+        }
     }
 
 }
