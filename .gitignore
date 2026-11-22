@@ -2,9 +2,6 @@
 .gradle/
 build/
 
-# gradle generated
-!gradle/wrapper/gradle-wrapper.jar
-
 # IDEA
 .idea/
 *.iml
@@ -57,3 +54,6 @@ config/
 *.jar
 *.war
 *.zip
+
+# gradle generated
+!gradle/wrapper/gradle-wrapper.jar
