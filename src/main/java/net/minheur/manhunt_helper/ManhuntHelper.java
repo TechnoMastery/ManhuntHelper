@@ -285,27 +285,12 @@ public class ManhuntHelper implements ModInitializer {
                                                     )
                                             )
                                             .then(literal("teamChatMode")
-                                                    .then(literal("allow")
+                                                    .then(argument("mode", enumArgTypeOf(GameDataManager.TeamChatMode.CODEC, GameDataManager.TeamChatMode::values))
                                                             .executes(context -> {
                                                                 if (!isConfigStage(context)) return 0;
-                                                                GameDataManager.data.teamChatMode = GameDataManager.TeamChatMode.ALLOWED;
-                                                                context.getSource().sendFeedback(() -> Text.literal("Set team chat mode to allowed"), true);
-                                                                return 1;
-                                                            })
-                                                    )
-                                                    .then(literal("force")
-                                                            .executes(context -> {
-                                                                if (!isConfigStage(context)) return 0;
-                                                                GameDataManager.data.teamChatMode = GameDataManager.TeamChatMode.FORCED;
-                                                                context.getSource().sendFeedback(() -> Text.literal("Set team chat mode to forced"), true);
-                                                                return 1;
-                                                            })
-                                                    )
-                                                    .then(literal("forbid")
-                                                            .executes(context -> {
-                                                                if (!isConfigStage(context)) return 0;
-                                                                GameDataManager.data.teamChatMode = GameDataManager.TeamChatMode.FORBIDDEN;
-                                                                context.getSource().sendFeedback(() -> Text.literal("Set team chat mode to forbidden"), true);
+                                                                GameDataManager.TeamChatMode newMode = context.getArgument("mode", GameDataManager.TeamChatMode.class);
+                                                                GameDataManager.data.teamChatMode = newMode;
+                                                                context.getSource().sendFeedback(() -> Text.literal("Set team chat mode to " + newMode.asString()), true);
                                                                 return 1;
                                                             })
                                                     )
